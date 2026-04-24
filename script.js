@@ -1,7 +1,7 @@
 let cart = JSON.parse(localStorage.getItem("cart")) || [];
 
 const TAX_RATE = 0.13;
-const SHIPPING_COST = 10.00;
+const SHIPPING_COST = 1.00;
 
 const EMAILJS_PUBLIC_KEY = "mYsVEfGV4fqyvVSXu";
 const EMAILJS_SERVICE_ID = "service_r88ycqr";
