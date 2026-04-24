@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cart</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <header>
+    <h1>Your Cart</h1>
+
+    <div class="top-menu">
+      <a href="./index.html" class="profile-link">Home</a>
+      <a href="account.html" class="profile-link">
+        👤 <span id="user-display">Guest</span>
+      </a>
+    </div>
+  </header>
+
+  <main class="cart-page">
+    <h2>Cart Items</h2>
+
+    <div id="cart-items"></div>
+
+    <div class="cart-summary">
+      <p>Subtotal: $<span id="cart-subtotal">0.00</span></p>
+      <p>Tax: $<span id="cart-tax">0.00</span></p>
+      <p>Shipping: $<span id="cart-shipping">0.00</span></p>
+      <h2>Total: $<span id="cart-page-total">0.00</span></h2>
+
+      <button id="clear-cart">Clear Cart</button>
+      <a href="delivery.html" class="checkout-link">Continue to Delivery</a>
+    </div>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>

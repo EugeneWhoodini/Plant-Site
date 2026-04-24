@@ -1,0 +1,370 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+
+  /*background-image: url("PlantImages/backgroundPlants.jpg");*/
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+
+  color: #1f2d1f;
+}
+
+header {
+  position: relative;
+  text-align: center;
+  padding: 40px 20px;
+  background: #dcefd8;
+}
+
+.top-menu {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.cart-link,
+.profile-link,
+.checkout-link {
+  background: white;
+  color: #1f2d1f;
+  text-decoration: none;
+  padding: 10px 14px;
+  border-radius: 12px;
+  font-weight: bold;
+}
+
+.cart-link:hover,
+.profile-link:hover,
+.checkout-link:hover {
+  background: #eef6ec;
+}
+
+.featured {
+  max-width: 1200px;
+  margin: 30px auto;
+  padding: 25px;
+  background: white;
+  border-radius: 16px;
+  text-align: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+}
+
+.featured-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 25px;
+  align-items: stretch;
+}
+
+.image-slider {
+  position: relative;
+  overflow: hidden;
+  border-radius: 12px;
+  background: #e8e8e8;
+  height: 360px;
+  width: 100%;
+}
+
+.image-track {
+  display: flex;
+  height: 100%;
+  transition: transform 0.3s ease;
+}
+
+.image-track img {
+  min-width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.featured-info {
+  text-align: left;
+  background: #f3f7f2;
+  border-radius: 14px;
+  padding: 25px;
+  min-height: 360px;
+}
+
+.featured-info h2 {
+  text-align: center;
+}
+
+.arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 5;
+  border: none;
+  background: rgba(0, 0, 0, 0.45);
+  color: white;
+  font-size: 26px;
+  padding: 8px 12px;
+  cursor: pointer;
+}
+
+.arrow.left {
+  left: 10px;
+}
+
+.arrow.right {
+  right: 10px;
+}
+
+.arrow:hover {
+  background: rgba(0, 0, 0, 0.7);
+}
+
+.plant-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 30px;
+  padding: 30px;
+  max-width: 1200px;
+  margin: auto;
+}
+
+.plant-card {
+  background: white;
+  border-radius: 16px;
+  padding: 24px;
+  min-height: 520px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+}
+
+.plant-card img {
+  width: 50%;
+  height: 180px;
+  object-fit: cover;
+  border-radius: 12px;
+  background: #e8e8e8;
+  display: block;
+  margin: 0 auto 15px auto;
+}
+
+.plant-card h2 {
+  text-align: center;
+}
+
+.price {
+  font-weight: bold;
+  text-align: center;
+}
+
+.quantity-control,
+.cart-remove-control {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 15px;
+  margin: 15px 0;
+}
+
+.quantity-control button,
+.cart-remove-control button {
+  width: 32px;
+  height: 32px;
+  font-size: 20px;
+  cursor: pointer;
+}
+
+.quantity,
+.remove-amount {
+  font-weight: bold;
+  font-size: 18px;
+}
+
+.add-to-cart,
+.remove-chosen,
+.remove-all,
+#clear-cart,
+#save-delivery,
+#place-order {
+  display: inline-block;
+  margin: 8px;
+  padding: 10px 18px;
+  border: none;
+  border-radius: 12px;
+  background: #2f5f35;
+  color: white;
+  cursor: pointer;
+  font-weight: bold;
+  text-decoration: none;
+}
+
+.add-to-cart:hover,
+#save-delivery:hover,
+#place-order:hover {
+  background: #244a29;
+}
+
+.remove-chosen {
+  background: #9a5a16;
+}
+
+.remove-all,
+#clear-cart {
+  background: #8b1e1e;
+}
+
+ul {
+  padding-left: 20px;
+}
+
+.add-search-to-cart {
+  display: inline-block;
+  margin: 8px;
+  padding: 10px 18px;
+  border: none;
+  border-radius: 12px;
+  background: #2f5f35;
+  color: white;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.add-search-to-cart:hover {
+  background: #244a29;
+}
+
+.cart-page,
+.account-page,
+.form-page {
+  max-width: 900px;
+  margin: 30px auto;
+  padding: 25px;
+  background: rgb(213, 248, 255);
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+}
+
+.cart-item {
+  display: grid;
+  grid-template-columns: 90px 1fr;
+  gap: 20px;
+  align-items: center;
+  border-bottom: 1px solid #ddd;
+  padding: 18px 0;
+}
+
+.cart-item img {
+  width: 90px;
+  height: 90px;
+  object-fit: cover;
+  border-radius: 10px;
+  background: #e8e8e8;
+}
+
+.cart-item h3 {
+  margin: 0 0 8px 0;
+}
+
+.cart-item p {
+  margin: 4px 0;
+}
+
+.cart-summary,
+.payment-summary {
+  text-align: right;
+  margin-top: 25px;
+  padding-top: 15px;
+  border-top: 2px solid #ddd;
+}
+
+.account-page {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 25px;
+}
+
+.account-box {
+  padding: 20px;
+  background: #f3f7f2;
+  border-radius: 14px;
+}
+
+.account-box input,
+.form-page input {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 12px;
+}
+
+.form-page label {
+  font-weight: bold;
+  display: block;
+  margin-top: 10px;
+}
+
+.account-box button {
+  width: 100%;
+  padding: 10px;
+  border: none;
+  border-radius: 12px;
+  background: #2f5f35;
+  color: white;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+#account-message {
+  grid-column: 1 / 3;
+  text-align: center;
+  font-weight: bold;
+}
+
+#delivery-message,
+#payment-message {
+  text-align: center;
+  font-weight: bold;
+}
+
+@media (max-width: 700px) {
+  .top-menu {
+    position: static;
+    justify-content: center;
+    margin-top: 20px;
+    flex-wrap: wrap;
+  }
+
+  .featured-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .plant-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .plant-card img {
+    width: 70%;
+  }
+
+  .account-page {
+    grid-template-columns: 1fr;
+  }
+
+  #account-message {
+    grid-column: 1;
+  }
+
+  .cart-item {
+    grid-template-columns: 1fr;
+    text-align: center;
+  }
+
+  .cart-item img {
+    margin: auto;
+  }
+
+  .cart-summary,
+  .payment-summary {
+    text-align: center;
+  }
+}

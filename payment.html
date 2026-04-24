@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Payment</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <header>
+    <h1>Payment</h1>
+
+    <div class="top-menu">
+      <a href="./index.html" class="profile-link">Home</a>
+      <a href="cart.html" class="cart-link">Cart</a>
+      <a href="account.html" class="profile-link">
+        👤 <span id="user-display">Guest</span>
+      </a>
+    </div>
+  </header>
+
+  <main class="form-page">
+    <h2>Payment Details</h2>
+
+    <div class="payment-summary">
+      <p>Subtotal: $<span id="payment-subtotal">0.00</span></p>
+      <p>Tax: $<span id="payment-tax">0.00</span></p>
+      <p>Shipping: $<span id="payment-shipping">0.00</span></p>
+      <h2>Total: $<span id="payment-total">0.00</span></h2>
+    </div>
+
+    <button id="place-order">Place Order</button>
+
+    <p id="payment-message"></p>
+  </main>
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+<script src="script.js"></script>
+  
+</body>
+</html>

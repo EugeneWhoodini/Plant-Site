@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Search Plants</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <header>
+    <h1>Search Plants</h1>
+
+    <div class="top-menu">
+  <a href="./index.html" class="profile-link">Home</a>
+
+  <a href="cart.html" class="cart-link">
+    Cart: <span id="cart-count">0</span> |
+    Total: $<span id="cart-total">0.00</span>
+  </a>
+
+  <a href="account.html" class="profile-link">
+    👤 <span id="user-display">Guest</span>
+  </a>
+</div>
+  </header>
+
+  <main class="form-page">
+
+    <h2>Find a Plant</h2>
+
+    <input
+      type="text"
+      id="search-input"
+      placeholder="Type plant name..."
+    />
+
+    <button id="search-btn">Search</button>
+
+    <div id="search-results"></div>
+
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>
