@@ -23,8 +23,8 @@ export default async function handler(req, res) {
         quantity: item.quantity,
       })),
       mode: "payment",
-      success_url: "https://plant-site.vercel.app/success.html",
-      cancel_url: "https://plant-site.vercel.app/payment.html",
+        success_url: "https://plant-site-ten.vercel.app/success.html",
+        cancel_url: "https://plant-site-ten.vercel.app/payment.html",
     });
 
     res.status(200).json({ url: session.url });
