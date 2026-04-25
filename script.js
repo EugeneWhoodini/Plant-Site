@@ -604,9 +604,47 @@ function setupSearchPage() {
   if (!searchInput || !resultsGrid || typeof plants === "undefined") return;
 
   function showResults(searchText) {
-    const filteredPlants = plants.filter(plant => {
-      return plant.name.toLowerCase().includes(searchText.toLowerCase());
-    });
+    const featuredPlantsForSearch = [
+  {
+    name: "Red Tiger Lotus",
+    price: 14.99,
+    images: ["Insert image file location here"],
+    description: "Insert appropriate info here",
+    requirements: [
+      "Insert appropriate info here",
+      "Insert appropriate info here",
+      "Insert appropriate info here"
+    ]
+  },
+  {
+    name: "Bucephalandra Blue",
+    price: 18.50,
+    images: ["Insert image file location here"],
+    description: "Insert appropriate info here",
+    requirements: [
+      "Insert appropriate info here",
+      "Insert appropriate info here",
+      "Insert appropriate info here"
+    ]
+  },
+  {
+    name: "Rotala Blood Red",
+    price: 7.99,
+    images: ["Insert image file location here"],
+    description: "Insert appropriate info here",
+    requirements: [
+      "Insert appropriate info here",
+      "Insert appropriate info here",
+      "Insert appropriate info here"
+    ]
+  }
+];
+
+const allSearchPlants = [...featuredPlantsForSearch, ...plants];
+
+const filteredPlants = allSearchPlants.filter(plant => {
+  return plant.name.toLowerCase().includes(searchText.toLowerCase());
+});
 
     resultsGrid.innerHTML = filteredPlants.map(plant => `
       <section class="plant-card" data-name="${plant.name}" data-price="${plant.price}" data-image="${plant.images[0]}">
