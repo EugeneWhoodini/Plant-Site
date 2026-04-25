@@ -7,6 +7,30 @@ const EMAILJS_PUBLIC_KEY = "mYsVEfGV4fqyvVSXu";
 const EMAILJS_SERVICE_ID = "service_r88ycqr";
 const EMAILJS_TEMPLATE_ID = "template_qsa5879";
 
+const plants = [
+  {
+    name: "Java Fern",
+    price: 6.99,
+    images: ["PlantImages/JavaFern/1.jpg"],
+    description: "Insert appropriate info here",
+    requirements: ["Insert appropriate info here"]
+  },
+  {
+    name: "Anubias Nana",
+    price: 8.50,
+    images: ["PlantImages/AnubiasNana/1.jpg"],
+    description: "Insert appropriate info here",
+    requirements: ["Insert appropriate info here"]
+  },
+  {
+    name: "Amazon Sword",
+    price: 12.00,
+    images: ["PlantImages/AmazonSword/1.jpg"],
+    description: "Insert appropriate info here",
+    requirements: ["Insert appropriate info here"]
+  }
+];
+
 if (typeof emailjs !== "undefined") {
   emailjs.init(EMAILJS_PUBLIC_KEY);
 }
