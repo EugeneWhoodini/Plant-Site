@@ -7,30 +7,6 @@ const EMAILJS_PUBLIC_KEY = "mYsVEfGV4fqyvVSXu";
 const EMAILJS_SERVICE_ID = "service_r88ycqr";
 const EMAILJS_TEMPLATE_ID = "template_qsa5879";
 
-const plants = [
-  {
-    name: "Java Fern",
-    price: 6.99,
-    images: ["PlantImages/JavaFern/1.jpg"],
-    description: "Insert appropriate info here",
-    requirements: ["Insert appropriate info here"]
-  },
-  {
-    name: "Anubias Nana",
-    price: 8.50,
-    images: ["PlantImages/AnubiasNana/1.jpg"],
-    description: "Insert appropriate info here",
-    requirements: ["Insert appropriate info here"]
-  },
-  {
-    name: "Amazon Sword",
-    price: 12.00,
-    images: ["PlantImages/AmazonSword/1.jpg"],
-    description: "Insert appropriate info here",
-    requirements: ["Insert appropriate info here"]
-  }
-];
-
 if (typeof emailjs !== "undefined") {
   emailjs.init(EMAILJS_PUBLIC_KEY);
 }
@@ -50,24 +26,6 @@ function updateUserDisplay() {
   if (userDisplay) {
     userDisplay.textContent = currentUser ? currentUser : "Guest";
   }
-}
-
-function setupPlantImageSliders() {
-  document.querySelectorAll('.plant-image-slider').forEach(slider => {
-    const img = slider.querySelector('.plant-card-img');
-    const images = img.dataset.images.split(',');
-    let index = 0;
-
-    slider.querySelector('.plant-img-left').onclick = () => {
-      index = (index - 1 + images.length) % images.length;
-      img.src = images[index];
-    };
-
-    slider.querySelector('.plant-img-right').onclick = () => {
-      index = (index + 1) % images.length;
-      img.src = images[index];
-    };
-  });
 }
 
 function calculateCartTotals() {
@@ -121,6 +79,21 @@ function setupSlider() {
   const incBtn = document.getElementById("featured-increase");
   const decBtn = document.getElementById("featured-decrease");
   const addBtn = document.getElementById("featured-add-to-cart");
+
+  if (
+    !track ||
+    !leftArrow ||
+    !rightArrow ||
+    !featuredCard ||
+    !featuredName ||
+    !featuredPrice ||
+    !featuredDescription ||
+    !featuredRequirements ||
+    !qtyDisplay ||
+    !incBtn ||
+    !decBtn ||
+    !addBtn
+  ) return;
 
   const featuredPlants = [
     {
@@ -234,6 +207,29 @@ function setupSlider() {
   updateFeaturedInfo();
 }
 
+function setupPlantImageSliders() {
+  document.querySelectorAll(".plant-image-slider").forEach(slider => {
+    const img = slider.querySelector(".plant-card-img");
+    const leftBtn = slider.querySelector(".plant-img-left");
+    const rightBtn = slider.querySelector(".plant-img-right");
+
+    if (!img || !leftBtn || !rightBtn) return;
+
+    const images = img.dataset.images.split(",");
+    let index = 0;
+
+    leftBtn.onclick = () => {
+      index = (index - 1 + images.length) % images.length;
+      img.src = images[index];
+    };
+
+    rightBtn.onclick = () => {
+      index = (index + 1) % images.length;
+      img.src = images[index];
+    };
+  });
+}
+
 function setupPlantCards() {
   const plantCards = document.querySelectorAll(".plant-card");
 
@@ -279,6 +275,67 @@ function setupPlantCards() {
       quantityText.textContent = quantity;
     });
   });
+}
+
+function renderPlants() {
+  const grid = document.getElementById("plant-grid");
+  if (!grid || typeof plants === "undefined") return;
+
+  const page = parseInt(document.body.dataset.page || "1");
+
+  let start = 0;
+  let end = 0;
+
+  if (page === 1) {
+    start = 0;
+    end = 21;
+  } else if (page === 2) {
+    start = 21;
+    end = 45;
+  } else {
+    start = 45;
+    end = 70;
+  }
+
+  const plantsToShow = plants.slice(start, end);
+
+  grid.innerHTML = plantsToShow.map(plant => `
+    <section class="plant-card" data-name="${plant.name}" data-price="${plant.price}" data-image="${plant.images[0]}">
+
+      <div class="plant-image-slider">
+        <button class="plant-img-arrow plant-img-left">‹</button>
+
+        <img
+          class="plant-card-img"
+          src="${plant.images[0]}"
+          alt="${plant.name}"
+          data-images="${plant.images.join(",")}"
+        >
+
+        <button class="plant-img-arrow plant-img-right">›</button>
+      </div>
+
+      <h2>${plant.name}</h2>
+      <p class="price">Price per piece: $${Number(plant.price).toFixed(2)}</p>
+      <p>${plant.description}</p>
+
+      <div class="quantity-control">
+        <button class="decrease">-</button>
+        <span class="quantity">1</span>
+        <button class="increase">+</button>
+      </div>
+
+      <button class="add-to-cart">Add to Cart</button>
+
+      <h3>Requirements</h3>
+      <ul>
+        ${plant.requirements.map(requirement => `<li>${requirement}</li>`).join("")}
+      </ul>
+    </section>
+  `).join("");
+
+  setupPlantImageSliders();
+  setupPlantCards();
 }
 
 function setupCartPage() {
@@ -492,13 +549,12 @@ function setupPaymentPage() {
 
       const data = await response.json();
 
-if (!response.ok) {
-  message.textContent = "Stripe error: " + data.error;
-  return;
-}
+      if (!response.ok) {
+        message.textContent = "Stripe error: " + data.error;
+        return;
+      }
 
-window.location.href = data.url;
-
+      window.location.href = data.url;
     } catch (err) {
       console.error("Stripe error:", err);
       message.textContent = "Payment failed.";
@@ -534,76 +590,12 @@ function sendOrderEmailAfterPayment() {
   emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, templateParams)
     .then(() => {
       console.log("Email sent after payment");
-
-      // clear cart AFTER success
       localStorage.removeItem("cart");
     })
     .catch(err => {
       console.error("Email error:", err);
     });
 }
-
-function renderPlants() {
-  const grid = document.getElementById("plant-grid");
-  if (!grid || typeof plants === "undefined") return;
-
-  const page = parseInt(document.body.dataset.page || "1");
-
-  let start = 0;
-  let end = 0;
-
-  if (page === 1) {
-    start = 0;
-    end = 21; // 3 x 7
-  } else if (page === 2) {
-    start = 21;
-    end = 45; // next 24
-  } else {
-    start = 45;
-    end = 70; // next 24
-  }
-
-  const plantsToShow = plants.slice(start, end);
-
-  grid.innerHTML = plantsToShow.map(plant => `
-    <section class="plant-card" data-name="${plant.name}" data-price="${plant.price}" data-image="${plant.images[0]}">
-
-      <div class="plant-image-slider">
-        <button class="plant-img-arrow plant-img-left">‹</button>
-
-        <img 
-          class="plant-card-img"
-          src="${plant.images[0]}"
-          data-images="${plant.images.join(",")}"
-        >
-
-        <button class="plant-img-arrow plant-img-right">›</button>
-      </div>
-
-      <h2>${plant.name}</h2>
-      <p class="price">Price per piece: $${plant.price}</p>
-      <p>${plant.description}</p>
-
-      <div class="quantity-control">
-        <button class="decrease">-</button>
-        <span class="quantity">1</span>
-        <button class="increase">+</button>
-      </div>
-
-      <button class="add-to-cart">Add to Cart</button>
-
-      <h3>Requirements</h3>
-      <ul>
-        ${plant.requirements.map(r => `<li>${r}</li>`).join("")}
-      </ul>
-    </section>
-  `).join("");
-
-  setupPlantImageSliders();
-  setupPlantCards();
-}
-
-
 
 function setupAccountPage() {
   const signupBtn = document.getElementById("signup-btn");
@@ -654,7 +646,6 @@ function setupAccountPage() {
     }
   });
 }
-
 
 document.addEventListener("DOMContentLoaded", () => {
   renderPlants();
