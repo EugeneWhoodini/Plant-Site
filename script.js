@@ -597,6 +597,63 @@ function sendOrderEmailAfterPayment() {
     });
 }
 
+function setupSearchPage() {
+  const searchInput = document.getElementById("search-input");
+  const resultsGrid = document.getElementById("search-results");
+
+  if (!searchInput || !resultsGrid || typeof plants === "undefined") return;
+
+  function showResults(searchText) {
+    const filteredPlants = plants.filter(plant => {
+      return plant.name.toLowerCase().includes(searchText.toLowerCase());
+    });
+
+    resultsGrid.innerHTML = filteredPlants.map(plant => `
+      <section class="plant-card" data-name="${plant.name}" data-price="${plant.price}" data-image="${plant.images[0]}">
+
+        <div class="plant-image-slider">
+          <button class="plant-img-arrow plant-img-left">‹</button>
+
+          <img
+            class="plant-card-img"
+            src="${plant.images[0]}"
+            alt="${plant.name}"
+            data-images="${plant.images.join(",")}"
+          >
+
+          <button class="plant-img-arrow plant-img-right">›</button>
+        </div>
+
+        <h2>${plant.name}</h2>
+        <p class="price">Price per piece: $${Number(plant.price).toFixed(2)}</p>
+        <p>${plant.description}</p>
+
+        <div class="quantity-control">
+          <button class="decrease">-</button>
+          <span class="quantity">1</span>
+          <button class="increase">+</button>
+        </div>
+
+        <button class="add-to-cart">Add to Cart</button>
+
+        <h3>Requirements</h3>
+        <ul>
+          ${plant.requirements.map(r => `<li>${r}</li>`).join("")}
+        </ul>
+      </section>
+    `).join("");
+
+    setupPlantImageSliders();
+    setupPlantCards();
+  }
+
+  showResults("");
+
+  searchInput.addEventListener("input", () => {
+    showResults(searchInput.value);
+  });
+}
+
 function setupAccountPage() {
   const signupBtn = document.getElementById("signup-btn");
   const signinBtn = document.getElementById("signin-btn");
@@ -654,6 +711,7 @@ document.addEventListener("DOMContentLoaded", () => {
   setupDeliveryPage();
   setupPaymentPage();
   setupAccountPage();
+  setupSearchPage();
   updateUserDisplay();
   updateHeaderCart();
 });
