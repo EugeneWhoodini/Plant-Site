@@ -28,6 +28,24 @@ function updateUserDisplay() {
   }
 }
 
+function setupPlantImageSliders() {
+  document.querySelectorAll('.plant-image-slider').forEach(slider => {
+    const img = slider.querySelector('.plant-card-img');
+    const images = img.dataset.images.split(',');
+    let index = 0;
+
+    slider.querySelector('.plant-img-left').onclick = () => {
+      index = (index - 1 + images.length) % images.length;
+      img.src = images[index];
+    };
+
+    slider.querySelector('.plant-img-right').onclick = () => {
+      index = (index + 1) % images.length;
+      img.src = images[index];
+    };
+  });
+}
+
 function calculateCartTotals() {
   let subtotal = 0;
 
@@ -501,6 +519,68 @@ function sendOrderEmailAfterPayment() {
     });
 }
 
+function renderPlants() {
+  const grid = document.getElementById("plant-grid");
+  if (!grid || typeof plants === "undefined") return;
+
+  const page = parseInt(document.body.dataset.page || "1");
+
+  let start = 0;
+  let end = 0;
+
+  if (page === 1) {
+    start = 0;
+    end = 21; // 3 x 7
+  } else if (page === 2) {
+    start = 21;
+    end = 45; // next 24
+  } else {
+    start = 45;
+    end = 70; // next 24
+  }
+
+  const plantsToShow = plants.slice(start, end);
+
+  grid.innerHTML = plantsToShow.map(plant => `
+    <section class="plant-card" data-name="${plant.name}" data-price="${plant.price}" data-image="${plant.images[0]}">
+
+      <div class="plant-image-slider">
+        <button class="plant-img-arrow plant-img-left">‹</button>
+
+        <img 
+          class="plant-card-img"
+          src="${plant.images[0]}"
+          data-images="${plant.images.join(",")}"
+        >
+
+        <button class="plant-img-arrow plant-img-right">›</button>
+      </div>
+
+      <h2>${plant.name}</h2>
+      <p class="price">Price per piece: $${plant.price}</p>
+      <p>${plant.description}</p>
+
+      <div class="quantity-control">
+        <button class="decrease">-</button>
+        <span class="quantity">1</span>
+        <button class="increase">+</button>
+      </div>
+
+      <button class="add-to-cart">Add to Cart</button>
+
+      <h3>Requirements</h3>
+      <ul>
+        ${plant.requirements.map(r => `<li>${r}</li>`).join("")}
+      </ul>
+    </section>
+  `).join("");
+
+  setupPlantImageSliders();
+  setupPlantCards();
+}
+
+
+
 function setupAccountPage() {
   const signupBtn = document.getElementById("signup-btn");
   const signinBtn = document.getElementById("signin-btn");
@@ -551,11 +631,14 @@ function setupAccountPage() {
   });
 }
 
-setupSlider();
-setupPlantCards();
-setupCartPage();
-setupDeliveryPage();
-setupPaymentPage();
-setupAccountPage();
-updateUserDisplay();
-updateHeaderCart();
+
+document.addEventListener("DOMContentLoaded", () => {
+  renderPlants();
+  setupSlider();
+  setupCartPage();
+  setupDeliveryPage();
+  setupPaymentPage();
+  setupAccountPage();
+  updateUserDisplay();
+  updateHeaderCart();
+});
