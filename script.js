@@ -218,14 +218,19 @@ function setupPlantImageSliders() {
     const images = img.dataset.images.split(",");
     let index = 0;
 
+    // set initial background (important)
+    slider.style.setProperty("--bg-image", `url('${images[0]}')`);
+
     leftBtn.onclick = () => {
       index = (index - 1 + images.length) % images.length;
       img.src = images[index];
+      slider.style.setProperty("--bg-image", `url('${images[index]}')`);
     };
 
     rightBtn.onclick = () => {
       index = (index + 1) % images.length;
       img.src = images[index];
+      slider.style.setProperty("--bg-image", `url('${images[index]}')`);
     };
   });
 }
@@ -302,7 +307,7 @@ function renderPlants() {
   grid.innerHTML = plantsToShow.map(plant => `
     <section class="plant-card" data-name="${plant.name}" data-price="${plant.price}" data-image="${plant.images[0]}">
 
-      <div class="plant-image-slider">
+      <div class="plant-image-slider" style="--bg-image: url('${plant.images[0]}')">
         <button class="plant-img-arrow plant-img-left">‹</button>
 
         <img
