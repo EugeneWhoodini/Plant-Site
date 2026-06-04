@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Plant Details</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+  <header>
+    <h1>Plant Details</h1>
+
+    <div class="top-menu">
+      <a href="search.html" class="profile-link">Search</a>
+
+      <a href="cart.html" class="cart-link">
+        Cart: <span id="cart-count">0</span> |
+        Total: $<span id="cart-total">0.00</span>
+      </a>
+
+      <a href="account.html" class="profile-link">
+        👤 <span id="user-display">Guest</span>
+      </a>
+    </div>
+  </header>
+
+  <main class="plant-detail-page">
+    <div class="plant-detail-container">
+
+      <div class="plant-detail-image-box">
+        <img id="detail-image" src="" alt="Plant image" />
+      </div>
+
+      <div class="plant-detail-info">
+        <h2 id="detail-name"></h2>
+        <p id="detail-price"></p>
+        <p id="detail-description"></p>
+
+        <ul id="detail-requirements"></ul>
+
+        <div class="quantity-control">
+          <button id="detail-minus">-</button>
+          <span id="detail-quantity">1</span>
+          <button id="detail-plus">+</button>
+        </div>
+
+        <button id="detail-add-cart">Add to Cart</button>
+
+        <br><br>
+        <a href="index.html">← Back to plants</a>
+      </div>
+
+    </div>
+  </main>
+
+  <script src="plants.js"></script>
+  <script src="script.js"></script>
+  <script src="plant.js"></script>
+</body>
+</html>

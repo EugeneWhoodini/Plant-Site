@@ -14,7 +14,25 @@ if (typeof emailjs !== "undefined") {
 function saveCart() {
   localStorage.setItem("cart", JSON.stringify(cart));
 }
+function addToCart(plant, quantity = 1) {
+  const existingItem = cart.find(item => item.name === plant.name);
 
+  const image = plant.images ? plant.images[0] : plant.image;
+
+  if (existingItem) {
+    existingItem.quantity += quantity;
+  } else {
+    cart.push({
+      name: plant.name,
+      price: plant.price,
+      image: image,
+      quantity: quantity
+    });
+  }
+
+  saveCart();
+  updateHeaderCart();
+}
 function getCurrentUser() {
   return localStorage.getItem("currentUser");
 }
@@ -320,7 +338,11 @@ function renderPlants() {
         <button class="plant-img-arrow plant-img-right">›</button>
       </div>
 
-      <h2>${plant.name}</h2>
+  <h2>
+    <a href="plant.html?id=${plant.id}" class="plant-name-link">
+      ${plant.name}
+    </a>
+  </h2>
       <p class="price">Price per piece: $${Number(plant.price).toFixed(2)}</p>
       <p>${plant.description}</p>
 

@@ -1,50 +1,26 @@
 const plants = [
   {
-    name: "Java Fern",
-    price: 6.99,
-    images: [
-      "PlantImages/Fern/Fern1.jpg",
-      "PlantImages/Fern/Fern2.jpg",
-      "PlantImages/Fern/Fern3.avif"
-    ],
-    description: "Hardy beginner plant. Grows well attached to wood or rocks.",
+    id: "anubias-nana",
+    name: "Anubias Nana",
+    price: 7.99,
+    images: ["images/anubias-nana.jpg"],
+    description: "Hardy, beginner-friendly aquatic plant that grows well in low-tech aquariums.",
     requirements: [
-      "Low to medium light",
-      "No CO2 required",
-      "Does not need substrate"
+      "Light: Low to medium",
+      "CO2: Not required",
+      "Difficulty: Easy"
     ]
-  }
-,
+  },
   {
-        name: "Java Fern",
-    price: 6.99,
-    images: [
-      "PlantImages/Fern/Fern1.jpg",
-      "PlantImages/Fern/Fern2.jpg",
-      "PlantImages/Fern/Fern3.avif"
-    ],
-    description: "Hardy beginner plant. Grows well attached to wood or rocks.",
+    id: "rotala-red",
+    name: "Rotala Red",
+    price: 5.99,
+    images: ["images/rotala-red.jpg"],
+    description: "Beautiful red stem plant. Best colour appears under strong light and CO2.",
     requirements: [
-      "Low to medium light",
-      "No CO2 required",
-      "Does not need substrate"
-    ]
-  }
-  ,
-  {
-        name: "Jav Fern",
-    price: 6.99,
-    images: [
-      "PlantImages/Fern/Fern1.jpg",
-      "PlantImages/Fern/Fern2.jpg",
-      "PlantImages/Fern/Fern3.avif"
-    ],
-    description: "Hardy beginner plant. Grows well attached to wood or rocks.",
-    requirements: [
-      "Low to medium light",
-      "No CO2 required",
-      "Does not need substrate"
+      "Light: Medium to high",
+      "CO2: Recommended",
+      "Difficulty: Medium"
     ]
   }
 ];
-
