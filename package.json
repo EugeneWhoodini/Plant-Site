@@ -1,5 +1,6 @@
 {
-  "dependencies": {
-    "stripe": "^18.0.0"
-  }
+  "name": "aqua-flora-co",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Static aquarium plant storefront."
 }

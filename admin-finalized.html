@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>PLANTOVIA | Search</title>
+  <title>PLANTOVIA | Finalized Orders</title>
   <link rel="stylesheet" href="style.css?v=20260728-admin-security" />
   <link rel="icon" type="image/png" href="assets/favicon.png" />
 </head>
@@ -11,30 +11,29 @@
   <header class="site-header">
     <a class="brand" href="index.html">
       <img class="brand-logo" src="assets/plantovia-logo.png" alt="Plantovia logo">
-      <span>
-        <strong>PLANTOVIA</strong>
-        <small>Find the right plant</small>
-      </span>
+      <span><strong>PLANTOVIA</strong><small>Order administration</small></span>
     </a>
     <nav class="top-menu" aria-label="Main navigation">
-      <a href="index.html">Home</a>
-      <a href="cart.html" class="cart-summary-link"><span class="cart-summary-title">Cart</span><span class="cart-summary-meta"><span id="cart-count">0 items</span></span><span class="cart-summary-total">$<span id="cart-total">0.00</span></span></a>
+      <a href="index.html">Shop</a>
       <a href="account.html"><span id="user-display">Guest</span></a>
     </nav>
   </header>
 
-  <main class="form-page search-page">
+  <main class="admin-page">
     <div class="section-heading">
-      <p class="eyebrow">Search</p>
-      <h1>Find aquarium plants</h1>
+      <p class="eyebrow">Admin</p>
+      <h1>Finalized orders</h1>
+      <p>Search completed and cancelled orders, including saved delivery proof.</p>
     </div>
-    <input type="search" id="search-input" placeholder="Search by plant name..." autocomplete="off" />
-    <div class="plant-grid compact" id="search-results"></div>
+    <div id="admin-panel" data-admin-view="finalized"></div>
   </main>
 
   <script src="plants.js"></script>
   <script src="config.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="script.js?v=20260728-admin-security"></script>
+  <script src="admin-orders.js?v=20260728-admin-security"></script>
+  <script src="admin-accounts.js?v=20260728-admin-security"></script>
+  <script src="admin.js?v=20260728-admin-security"></script>
 </body>
 </html>

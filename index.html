@@ -1,86 +1,122 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Insert title here</title>
-  <link rel="stylesheet" href="style.css" />
+  <title>PLANTOVIA</title>
+  <link rel="stylesheet" href="style.css?v=20260728-admin-security" />
+  <link rel="icon" type="image/png" href="assets/favicon.png" />
 </head>
-<body data-page="1">
+<body data-page="all">
+  <header class="site-header">
+    <a class="brand" href="index.html">
+      <img class="brand-logo" src="assets/plantovia-logo.png" alt="Plantovia logo">
+      <span>
+        <strong>PLANTOVIA</strong>
+        <small>Aquarium plants grown for healthy tanks</small>
+      </span>
+    </a>
 
-  <header>
-    <h1>Insert title here</h1>
-    <p>Insert appropriate info here</p>
-
-    <div class="top-menu">
-      <a href="search.html" class="profile-link">Search</a>
-
-      <a href="cart.html" class="cart-link">
-        Cart: <span id="cart-count">0</span> |
-        Total: $<span id="cart-total">0.00</span>
+    <nav class="top-menu" aria-label="Main navigation">
+      <a href="search.html">Search</a>
+      <a href="#contact">Contact</a>
+      <a href="cart.html" class="cart-summary-link">
+        <span class="cart-summary-title">Cart</span>
+        <span class="cart-summary-meta"><span id="cart-count">0 items</span></span>
+        <span class="cart-summary-total">$<span id="cart-total">0.00</span></span>
       </a>
-
-      <a href="account.html" class="profile-link">
-        👤 <span id="user-display">Guest</span>
-      </a>
-    </div>
+      <a href="account.html"><span id="user-display">Guest</span></a>
+    </nav>
   </header>
 
-  <section class="featured">
-    <h2>Featured Plants</h2>
-
-    <div class="featured-layout">
-      <div class="image-slider">
-        <button class="arrow left">&#10094;</button>
-
-        <div class="image-track">
-          <img src="Insert image file location here" alt="Insert appropriate info here">
-          <img src="Insert image file location here" alt="Insert appropriate info here">
-          <img src="Insert image file location here" alt="Insert appropriate info here">
-        </div>
-
-        <button class="arrow right">&#10095;</button>
-      </div>
-
-      <div class="featured-info" id="featured-card"
-           data-name="Insert title here"
-           data-price="0.00"
-           data-image="Insert image file location here">
-
-        <h2 id="featured-name">Insert title here</h2>
-        <p class="price">Price per piece: $<span id="featured-price">0.00</span></p>
-
-        <div class="quantity-control">
-          <button id="featured-decrease">-</button>
-          <span id="featured-quantity">1</span>
-          <button id="featured-increase">+</button>
-        </div>
-
-        <button id="featured-add-to-cart" class="add-to-cart">Add to Cart</button>
-
-        <h3>Description</h3>
-        <p id="featured-description">Insert appropriate info here</p>
-
-        <h3>Requirements</h3>
-        <ul id="featured-requirements">
-          <li>Insert appropriate info here</li>
-          <li>Insert appropriate info here</li>
-          <li>Insert appropriate info here</li>
-        </ul>
+  <section class="hero">
+    <img src="assets/hero-aquascape.png" alt="Lush planted aquarium aquascape">
+    <div class="hero-content">
+      <p class="eyebrow">Freshwater aquarium plants</p>
+      <h1>Healthy plants for cleaner, calmer aquariums.</h1>
+      <p>Shop beginner-friendly epiphytes, carpets, stems, mosses, and centerpiece plants selected for planted tanks.</p>
+      <div class="hero-actions">
+        <a class="button primary" href="#plant-grid">Shop plants</a>
+        <a class="button secondary" href="search.html">Find a plant</a>
+        <a class="button secondary" href="#contact">Contact us</a>
       </div>
     </div>
   </section>
 
+  <section class="shipping-banner">
+    <p class="eyebrow">Mississauga delivery</p>
+    <h2 id="free-shipping-message">Free shipping within Mississauga on qualifying local orders.</h2>
+    <p class="shipping-service-copy">Your order will be personally delivered by the owner of Plantovia. Delivery customers can ask aquarium and plant-care questions in person.</p>
+  </section>
+
+  <section class="featured">
+    <div class="section-heading">
+      <p class="eyebrow">Featured this week</p>
+      <h2>Easy wins for planted tanks</h2>
+    </div>
+    <div class="featured-layout">
+      <div class="image-slider">
+        <button class="arrow left" aria-label="Previous featured plant">&lsaquo;</button>
+        <div class="image-track"></div>
+        <button class="arrow right" aria-label="Next featured plant">&rsaquo;</button>
+      </div>
+
+      <div class="featured-info" id="featured-card" data-name="" data-price="" data-image="">
+        <h2 id="featured-name"></h2>
+        <p class="price">Price per plant: $<span id="featured-price">0.00</span></p>
+        <p id="featured-description"></p>
+
+        <div class="quantity-control">
+          <button id="featured-decrease" aria-label="Decrease quantity">-</button>
+          <span id="featured-quantity">1</span>
+          <button id="featured-increase" aria-label="Increase quantity">+</button>
+        </div>
+
+        <button id="featured-add-to-cart" class="add-to-cart">Add to Cart</button>
+
+        <h3>Care Requirements</h3>
+        <ul id="featured-requirements"></ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="catalogue-intro">
+    <div>
+      <p class="eyebrow">Catalogue</p>
+      <h2>Browse live aquarium plants</h2>
+    </div>
+    <p id="catalogue-filter-label">Prices are listed per plant or portion. Local delivery is calculated at checkout.</p>
+  </section>
+
   <main class="plant-grid" id="plant-grid"></main>
 
-  <div class="page-nav">
-    <a href="index.html" class="active-page">1</a>
-    <a href="plants2.html">2</a>
-    <a href="plants3.html">3</a>
-  </div>
+  <section class="contact-section" id="contact">
+    <div class="section-heading">
+      <p class="eyebrow">Contact</p>
+      <h2>Ask Plantovia a question</h2>
+      <p>Messages and e-transfer questions go to <strong>plantovia.shop@gmail.com</strong>.</p>
+    </div>
+    <form id="contact-form" class="contact-form">
+      <label for="contact-name">Name</label>
+      <input type="text" id="contact-name" placeholder="Your name">
+
+      <label for="contact-email">Email</label>
+      <input type="email" id="contact-email" placeholder="Your email">
+
+      <label for="contact-subject">Subject</label>
+      <input type="text" id="contact-subject" placeholder="Plant question, delivery, order help...">
+
+      <label for="contact-body">Message</label>
+      <textarea id="contact-body" rows="6" placeholder="Write your message here"></textarea>
+
+      <button class="button primary" type="submit">Send Email</button>
+      <p id="contact-message" class="form-message"></p>
+    </form>
+  </section>
 
   <script src="plants.js"></script>
-  <script src="script.js"></script>
+  <script src="config.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="script.js?v=20260728-admin-security"></script>
 </body>
 </html>

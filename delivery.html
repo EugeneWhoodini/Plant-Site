@@ -3,49 +3,62 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Delivery Info</title>
-  <link rel="stylesheet" href="style.css" />
+  <title>PLANTOVIA | Delivery</title>
+  <link rel="stylesheet" href="style.css?v=20260728-admin-security" />
+  <link rel="icon" type="image/png" href="assets/favicon.png" />
 </head>
 <body>
-
-  <header>
-    <h1>Delivery Information</h1>
-
-    <div class="top-menu">
-      <a href="./index.html" class="profile-link">Home</a>
-      <a href="cart.html" class="cart-link">Cart</a>
-      <a href="account.html" class="profile-link">
-        👤 <span id="user-display">Guest</span>
-      </a>
-    </div>
+  <header class="site-header">
+    <a class="brand" href="index.html">
+      <img class="brand-logo" src="assets/plantovia-logo.png" alt="Plantovia logo">
+      <span>
+        <strong>PLANTOVIA</strong>
+        <small>Delivery details</small>
+      </span>
+    </a>
+    <nav class="top-menu" aria-label="Main navigation">
+      <a href="index.html">Home</a>
+      <a href="cart.html" class="cart-summary-link"><span class="cart-summary-title">Cart</span><span class="cart-summary-meta"><span id="cart-count">0 items</span></span><span class="cart-summary-total">$<span id="cart-total">0.00</span></span></a>
+      <a href="account.html"><span id="user-display">Guest</span></a>
+    </nav>
   </header>
 
   <main class="form-page">
-    <h2>Enter Delivery Details</h2>
+    <div class="section-heading">
+      <p class="eyebrow">Delivery</p>
+      <h1>Where should the plants go?</h1>
+      <p>Your order will be personally delivered by the owner of Plantovia. You can ask aquarium and plant-care questions in person when your order arrives.</p>
+    </div>
 
-    <label>Full Name</label>
-    <input type="text" id="delivery-name" placeholder="Insert appropriate info here">
+    <div class="service-note">
+      <strong>Owner-delivered in Mississauga</strong>
+      <p>Your delivery details are stored with your order and are visible only to you and the Plantovia admin.</p>
+    </div>
 
-    <label>Phone Number</label>
-    <input type="text" id="delivery-phone" placeholder="Insert appropriate info here">
+    <label for="delivery-name">Full Name</label>
+    <input type="text" id="delivery-name" maxlength="120" autocomplete="name" placeholder="Full name" required>
 
-    <label>Email</label>
-    <input type="email" id="delivery-email" placeholder="Insert appropriate info here">
+    <label for="delivery-phone">Phone Number</label>
+    <input type="tel" id="delivery-phone" maxlength="30" autocomplete="tel" inputmode="tel" placeholder="Phone number" required>
 
-    <label>Address</label>
-    <input type="text" id="delivery-address" placeholder="Insert appropriate info here">
+    <label for="delivery-email">Email</label>
+    <input type="email" id="delivery-email" maxlength="160" autocomplete="email" inputmode="email" placeholder="Your account email" required>
 
-    <label>City</label>
-    <input type="text" id="delivery-city" placeholder="Insert appropriate info here">
+    <label for="delivery-address">Address</label>
+    <input type="text" id="delivery-address" maxlength="180" autocomplete="street-address" placeholder="Street address" required>
 
-    <label>Postal Code</label>
-    <input type="text" id="delivery-postal" placeholder="Insert appropriate info here">
+    <label for="delivery-city">City</label>
+    <input type="text" id="delivery-city" maxlength="80" autocomplete="address-level2" placeholder="City" value="Mississauga" required>
 
-    <button id="save-delivery">Continue to Payment</button>
+    <label for="delivery-postal">Postal Code</label>
+    <input type="text" id="delivery-postal" maxlength="7" autocomplete="postal-code" inputmode="text" placeholder="A1A 1A1" required>
 
-    <p id="delivery-message"></p>
+    <button id="save-delivery" class="button primary">Continue to Payment</button>
+    <p id="delivery-message" class="form-message"></p>
   </main>
 
-  <script src="script.js"></script>
+  <script src="config.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="script.js?v=20260728-admin-security"></script>
 </body>
 </html>

@@ -1,19 +1,47 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Order Success</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PLANTOVIA | Order Received</title>
+  <link rel="stylesheet" href="style.css?v=20260728-admin-security" />
+  <link rel="icon" type="image/png" href="assets/favicon.png" />
 </head>
 <body>
+  <header class="site-header">
+    <a class="brand" href="index.html">
+      <img class="brand-logo" src="assets/plantovia-logo.png" alt="Plantovia logo">
+      <span>
+        <strong>PLANTOVIA</strong>
+        <small>Order received</small>
+      </span>
+    </a>
+    <nav class="top-menu" aria-label="Main navigation">
+      <a href="index.html">Home</a>
+      <a href="search.html">Search</a>
+    </nav>
+  </header>
 
-<h1>Payment Successful 🎉</h1>
-<p>Your order is being processed.</p>
+  <main class="form-page success-page">
+    <p class="eyebrow">Thank you</p>
+    <h1>Your order has been received.</h1>
+    <div class="success-order-reference">
+      <span>Order number</span>
+      <strong id="success-order-number">Loading...</strong>
+      <span>Total due</span>
+      <strong id="success-order-total">$0.00</strong>
+    </div>
+    <p>Send the exact total by e-transfer to <strong>plantovia.shop@gmail.com</strong> and put your order number in the message.</p>
+    <p id="success-receipt-status" class="receipt-status"></p>
+    <div class="success-actions">
+      <a href="account.html" class="button primary">View Order History</a>
+      <a href="index.html" class="button secondary">Back to Shop</a>
+    </div>
+  </main>
 
-<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
-<script src="script.js"></script>
-
-<script>
-  sendOrderEmailAfterPayment();
-</script>
-
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+  <script src="config.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="script.js?v=20260728-admin-security"></script>
 </body>
 </html>

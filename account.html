@@ -3,42 +3,58 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>User Profile</title>
-  <link rel="stylesheet" href="style.css" />
+  <title>PLANTOVIA | Account</title>
+  <link rel="stylesheet" href="style.css?v=20260728-admin-security" />
+  <link rel="icon" type="image/png" href="assets/favicon.png" />
 </head>
 <body>
-
-  <header>
-    <h1>User Profile</h1>
-
-    <div class="top-menu">
-      <a href="index.html" class="profile-link">Home</a>
-      <a href="cart.html" class="cart-link">Cart</a>
-    </div>
+  <header class="site-header">
+    <a class="brand" href="index.html">
+      <img class="brand-logo" src="assets/plantovia-logo.png" alt="Plantovia logo">
+      <span>
+        <strong>PLANTOVIA</strong>
+        <small>Customer account</small>
+      </span>
+    </a>
+    <nav class="top-menu" aria-label="Main navigation">
+      <a href="index.html">Home</a>
+      <a href="cart.html" class="cart-summary-link"><span class="cart-summary-title">Cart</span><span class="cart-summary-meta"><span id="cart-count">0 items</span></span><span class="cart-summary-total">$<span id="cart-total">0.00</span></span></a>
+    </nav>
   </header>
 
   <main class="account-page">
     <section class="account-box">
-      <h2>Sign Up</h2>
-
-      <input type="text" id="signup-username" placeholder="Create username">
-      <input type="password" id="signup-password" placeholder="Create password">
-
-      <button id="signup-btn">Sign Up</button>
+      <p class="eyebrow">New customer</p>
+      <h1>Create account</h1>
+      <input type="email" id="signup-username" autocomplete="email" placeholder="Email address">
+      <input type="password" id="signup-password" minlength="8" autocomplete="new-password" placeholder="Password (8+ characters)">
+      <button id="signup-btn" class="button primary">Sign Up</button>
     </section>
 
     <section class="account-box">
-      <h2>Sign In</h2>
-
-      <input type="text" id="signin-username" placeholder="Username">
-      <input type="password" id="signin-password" placeholder="Password">
-
-      <button id="signin-btn">Sign In</button>
+      <p class="eyebrow">Returning customer</p>
+      <h1>Sign in</h1>
+      <input type="email" id="signin-username" autocomplete="email" placeholder="Email address">
+      <input type="password" id="signin-password" autocomplete="current-password" placeholder="Password">
+      <button id="signin-btn" class="button primary">Sign In</button>
     </section>
 
-    <p id="account-message"></p>
+    <p id="account-message" class="form-message"></p>
+
+    <section class="account-box order-history-panel">
+      <div class="order-history-title">
+        <div>
+          <p class="eyebrow">Purchase history</p>
+          <h1>Your orders</h1>
+        </div>
+      </div>
+      <div id="purchase-history"></div>
+    </section>
   </main>
 
-  <script src="script.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+  <script src="config.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="script.js?v=20260728-admin-security"></script>
 </body>
 </html>

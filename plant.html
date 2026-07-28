@@ -3,59 +3,59 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Plant Details</title>
-  <link rel="stylesheet" href="style.css" />
+  <title>PLANTOVIA | Plant Details</title>
+  <link rel="stylesheet" href="style.css?v=20260728-admin-security" />
+  <link rel="icon" type="image/png" href="assets/favicon.png" />
 </head>
-
 <body>
-  <header>
-    <h1>Plant Details</h1>
-
-    <div class="top-menu">
-      <a href="search.html" class="profile-link">Search</a>
-
-      <a href="cart.html" class="cart-link">
-        Cart: <span id="cart-count">0</span> |
-        Total: $<span id="cart-total">0.00</span>
-      </a>
-
-      <a href="account.html" class="profile-link">
-        👤 <span id="user-display">Guest</span>
-      </a>
-    </div>
+  <header class="site-header">
+    <a class="brand" href="index.html">
+      <img class="brand-logo" src="assets/plantovia-logo.png" alt="Plantovia logo">
+      <span>
+        <strong>PLANTOVIA</strong>
+        <small>Freshwater aquarium plants</small>
+      </span>
+    </a>
+    <nav class="top-menu" aria-label="Main navigation">
+      <a href="search.html">Search</a>
+      <a href="cart.html" class="cart-summary-link"><span class="cart-summary-title">Cart</span><span class="cart-summary-meta"><span id="cart-count">0 items</span></span><span class="cart-summary-total">$<span id="cart-total">0.00</span></span></a>
+      <a href="account.html"><span id="user-display">Guest</span></a>
+    </nav>
   </header>
 
   <main class="plant-detail-page">
     <div class="plant-detail-container">
-
       <div class="plant-detail-image-box">
+        <button id="detail-img-left" class="detail-img-arrow" aria-label="Previous image">&lsaquo;</button>
         <img id="detail-image" src="" alt="Plant image" />
+        <button id="detail-img-right" class="detail-img-arrow" aria-label="Next image">&rsaquo;</button>
       </div>
 
       <div class="plant-detail-info">
-        <h2 id="detail-name"></h2>
+        <a class="back-link" href="index.html">Back to catalogue</a>
+        <p class="eyebrow">Aquarium plant</p>
+        <h1 id="detail-name"></h1>
         <p id="detail-price"></p>
         <p id="detail-description"></p>
 
+        <h2>Care Requirements</h2>
         <ul id="detail-requirements"></ul>
 
         <div class="quantity-control">
-          <button id="detail-minus">-</button>
+          <button id="detail-minus" aria-label="Decrease quantity">-</button>
           <span id="detail-quantity">1</span>
-          <button id="detail-plus">+</button>
+          <button id="detail-plus" aria-label="Increase quantity">+</button>
         </div>
 
-        <button id="detail-add-cart">Add to Cart</button>
-
-        <br><br>
-        <a href="index.html">← Back to plants</a>
+        <button id="detail-add-cart" class="add-to-cart">Add to Cart</button>
       </div>
-
     </div>
   </main>
 
   <script src="plants.js"></script>
-  <script src="script.js"></script>
-  <script src="plant.js"></script>
+  <script src="config.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="script.js?v=20260728-admin-security"></script>
+  <script src="plant.js?v=20260720-secure-orders"></script>
 </body>
 </html>

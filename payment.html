@@ -3,39 +3,53 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Payment</title>
-  <link rel="stylesheet" href="style.css" />
+  <title>PLANTOVIA | Payment</title>
+  <link rel="stylesheet" href="style.css?v=20260728-admin-security" />
+  <link rel="icon" type="image/png" href="assets/favicon.png" />
 </head>
 <body>
-
-  <header>
-    <h1>Payment</h1>
-
-    <div class="top-menu">
-      <a href="./index.html" class="profile-link">Home</a>
-      <a href="cart.html" class="cart-link">Cart</a>
-      <a href="account.html" class="profile-link">
-        👤 <span id="user-display">Guest</span>
-      </a>
-    </div>
+  <header class="site-header">
+    <a class="brand" href="index.html">
+      <img class="brand-logo" src="assets/plantovia-logo.png" alt="Plantovia logo">
+      <span>
+        <strong>PLANTOVIA</strong>
+        <small>Confirm your order</small>
+      </span>
+    </a>
+    <nav class="top-menu" aria-label="Main navigation">
+      <a href="index.html">Home</a>
+      <a href="cart.html" class="cart-summary-link"><span class="cart-summary-title">Cart</span><span class="cart-summary-meta"><span id="cart-count">0 items</span></span><span class="cart-summary-total">$<span id="cart-total">0.00</span></span></a>
+      <a href="account.html"><span id="user-display">Guest</span></a>
+    </nav>
   </header>
 
-  <main class="form-page">
-    <h2>Payment Details</h2>
-
-    <div class="payment-summary">
-      <p>Subtotal: $<span id="payment-subtotal">0.00</span></p>
-      <p>Tax: $<span id="payment-tax">0.00</span></p>
-      <p>Shipping: $<span id="payment-shipping">0.00</span></p>
-      <h2>Total: $<span id="payment-total">0.00</span></h2>
+  <main class="form-page payment-page">
+    <div class="section-heading">
+      <p class="eyebrow">Payment</p>
+      <h1>Review and submit</h1>
+      <p id="payment-account-status" class="checkout-account-status">Checking your account...</p>
     </div>
 
-    <button id="place-order">Place Order</button>
+    <div class="payment-summary">
+      <p>Subtotal <span>$<span id="payment-subtotal">0.00</span></span></p>
+      <p>HST <span>$<span id="payment-tax">0.00</span></span></p>
+      <p>Local delivery <span>$<span id="payment-shipping">0.00</span></span></p>
+      <h2>Total <span>$<span id="payment-total">0.00</span></span></h2>
+    </div>
 
-    <p id="payment-message"></p>
+    <div class="payment-note">
+      <h2>E-transfer payment</h2>
+      <p>After submitting, send the exact total to <strong>plantovia.shop@gmail.com</strong>.</p>
+      <p>Include your unique Plantovia order number in the e-transfer message. Your order will be prepared after payment is received.</p>
+    </div>
+
+    <button id="place-order" class="button primary">Submit E-transfer Order</button>
+    <p id="payment-message" class="form-message"></p>
   </main>
-<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
-<script src="script.js"></script>
-  
+
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+  <script src="config.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="script.js?v=20260728-admin-security"></script>
 </body>
 </html>

@@ -3,38 +3,48 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Cart</title>
-  <link rel="stylesheet" href="style.css" />
+  <title>PLANTOVIA | Cart</title>
+  <link rel="stylesheet" href="style.css?v=20260728-admin-security" />
+  <link rel="icon" type="image/png" href="assets/favicon.png" />
 </head>
 <body>
-
-  <header>
-    <h1>Your Cart</h1>
-
-    <div class="top-menu">
-      <a href="./index.html" class="profile-link">Home</a>
-      <a href="account.html" class="profile-link">
-        👤 <span id="user-display">Guest</span>
-      </a>
-    </div>
+  <header class="site-header">
+    <a class="brand" href="index.html">
+      <img class="brand-logo" src="assets/plantovia-logo.png" alt="Plantovia logo">
+      <span>
+        <strong>PLANTOVIA</strong>
+        <small>Your plant order</small>
+      </span>
+    </a>
+    <nav class="top-menu" aria-label="Main navigation">
+      <a href="index.html">Home</a>
+      <a href="search.html">Search</a>
+      <a href="account.html"><span id="user-display">Guest</span></a>
+    </nav>
   </header>
 
   <main class="cart-page">
-    <h2>Cart Items</h2>
+    <div class="section-heading">
+      <p class="eyebrow">Cart</p>
+      <h1>Your order</h1>
+    </div>
 
     <div id="cart-items"></div>
 
     <div class="cart-summary">
-      <p>Subtotal: $<span id="cart-subtotal">0.00</span></p>
-      <p>Tax: $<span id="cart-tax">0.00</span></p>
-      <p>Shipping: $<span id="cart-shipping">0.00</span></p>
-      <h2>Total: $<span id="cart-page-total">0.00</span></h2>
-
-      <button id="clear-cart">Clear Cart</button>
-      <a href="delivery.html" class="checkout-link">Continue to Delivery</a>
+      <p>Subtotal <span>$<span id="cart-subtotal">0.00</span></span></p>
+      <p>HST <span>$<span id="cart-tax">0.00</span></span></p>
+      <p>Local delivery <span>$<span id="cart-shipping">0.00</span></span></p>
+      <h2>Total <span>$<span id="cart-page-total">0.00</span></span></h2>
+      <div class="checkout-actions">
+        <button id="clear-cart">Clear Cart</button>
+        <a href="delivery.html" class="button primary">Continue to Delivery</a>
+      </div>
     </div>
   </main>
 
-  <script src="script.js"></script>
+  <script src="config.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="script.js?v=20260728-admin-security"></script>
 </body>
 </html>
