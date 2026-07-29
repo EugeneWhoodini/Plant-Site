@@ -773,7 +773,7 @@ function updateUserDisplay() {
   const currentUser = getCurrentUser();
 
   if (userDisplay) {
-    userDisplay.textContent = currentUser || "Guest";
+    userDisplay.textContent = currentUser ? "Account" : "Sign In";
   }
 
   document.querySelectorAll(".admin-nav-link").forEach(link => link.remove());
@@ -783,7 +783,7 @@ function updateUserDisplay() {
       const adminLink = document.createElement("a");
       adminLink.href = "admin.html";
       adminLink.className = "admin-nav-link";
-      adminLink.textContent = "Admin";
+      adminLink.innerHTML = `<span class="admin-nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v5c0 4.6-3 8.4-7 10-4-1.6-7-5.4-7-10V6l7-3z"/></svg></span>Admin`;
       menu.appendChild(adminLink);
     });
   }
@@ -1864,7 +1864,20 @@ function setupAccountPage() {
     if (resetBox) resetBox.hidden = mode !== "reset";
   }
 
+  function urlIndicatesPasswordRecovery() {
+    const query = new URLSearchParams(window.location.search);
+    const hash = new URLSearchParams(window.location.hash.replace(/^#/, ""));
+    return query.get("type") === "recovery" || hash.get("type") === "recovery";
+  }
+
+  let inPasswordRecovery = urlIndicatesPasswordRecovery();
+
   function updateAccountView() {
+    if (inPasswordRecovery) {
+      showAuthView("reset");
+      return;
+    }
+
     const currentUser = getCurrentUser();
     if (currentUser) {
       if (statusEmail) statusEmail.textContent = currentUser;
@@ -1875,12 +1888,13 @@ function setupAccountPage() {
   }
 
   function enterPasswordRecoveryView() {
+    inPasswordRecovery = true;
     showAuthView("reset");
     accountMessage.textContent = "Choose a new password to finish resetting your account.";
   }
 
   document.addEventListener("plantovia:password-recovery", enterPasswordRecoveryView);
-  if (passwordRecoveryPending) enterPasswordRecoveryView();
+  if (passwordRecoveryPending || inPasswordRecovery) enterPasswordRecoveryView();
 
   let customerOrders = [];
   let historyFiltersOpen = false;
@@ -2228,6 +2242,8 @@ function setupAccountPage() {
       }
 
       passwordRecoveryPending = false;
+      inPasswordRecovery = false;
+      window.history.replaceState(null, "", window.location.pathname);
       accountMessage.textContent = "Password updated. You're signed in.";
       updateUserDisplay();
       updateAccountView();

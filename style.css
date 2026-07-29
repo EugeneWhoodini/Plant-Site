@@ -246,6 +246,32 @@ h1, h2, h3, h4 {
   display: none;
 }
 
+.account-nav-link,
+.admin-nav-link {
+  gap: 6px;
+}
+
+.account-nav-icon,
+.admin-nav-icon {
+  display: inline-flex;
+  opacity: 0.85;
+}
+
+.top-menu a.admin-nav-link {
+  border-color: rgba(200, 145, 47, 0.5);
+  background: rgba(200, 145, 47, 0.18);
+  color: #ffe6b0;
+}
+
+.top-menu a.admin-nav-link:hover {
+  background: rgba(200, 145, 47, 0.28);
+  border-color: rgba(200, 145, 47, 0.72);
+}
+
+.top-menu a.admin-nav-link::after {
+  background: #ffe6b0;
+}
+
 .top-menu .cart-summary-link {
   display: grid;
   grid-template-columns: auto auto;
@@ -323,6 +349,20 @@ h1, h2, h3, h4 {
 
 .button.secondary {
   background: rgba(255, 255, 255, 0.9);
+}
+
+.account-box .button.secondary {
+  background: rgba(255, 255, 255, 0.9);
+  color: var(--ink);
+  border: 1px solid var(--line);
+  box-shadow: none;
+}
+
+.account-box .button.secondary:hover {
+  filter: none;
+  background: var(--surface-soft);
+  border-color: rgba(31, 107, 74, 0.35);
+  box-shadow: var(--shadow-xs);
 }
 
 button:focus-visible,
@@ -2110,7 +2150,7 @@ textarea {
 .intro-splash {
   position: fixed;
   inset: 0;
-  z-index: 100;
+  z-index: 1200;
   display: grid;
   place-items: center;
   gap: 14px;
