@@ -838,6 +838,64 @@ function escapeHtml(value) {
     .replace(/"/g, "&quot;");
 }
 
+function dateKeyFromDate(date) {
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+}
+
+function calendarRangeLabel(range) {
+  if (!range.startDate) return "Any date";
+  const start = new Date(`${range.startDate}T12:00:00`).toLocaleDateString("en-CA", { dateStyle: "medium" });
+  if (!range.endDate) return start;
+  const end = new Date(`${range.endDate}T12:00:00`).toLocaleDateString("en-CA", { dateStyle: "medium" });
+  return `${start} - ${end}`;
+}
+
+function buildDateRangeCalendar(monthDate, range) {
+  const year = monthDate.getFullYear();
+  const month = monthDate.getMonth();
+  const firstWeekday = new Date(year, month, 1).getDay();
+  const dayCount = new Date(year, month + 1, 0).getDate();
+  const cells = [];
+
+  for (let blank = 0; blank < firstWeekday; blank += 1) {
+    cells.push('<span class="admin-calendar-blank" aria-hidden="true"></span>');
+  }
+
+  for (let day = 1; day <= dayCount; day += 1) {
+    const key = dateKeyFromDate(new Date(year, month, day));
+    const selected = key === range.startDate || key === range.endDate;
+    const inRange = range.startDate && range.endDate && key > range.startDate && key < range.endDate;
+    cells.push(`<button class="admin-calendar-day ${selected ? "selected" : ""} ${inRange ? "in-range" : ""}" data-date="${key}" type="button" aria-pressed="${selected ? "true" : "false"}">${day}</button>`);
+  }
+
+  return `
+    <div class="admin-calendar">
+      <div class="admin-calendar-header">
+        <button class="admin-calendar-month" data-direction="previous" type="button" aria-label="Previous month">&#8249;</button>
+        <strong>${monthDate.toLocaleDateString("en-CA", { month: "long", year: "numeric" })}</strong>
+        <button class="admin-calendar-month" data-direction="next" type="button" aria-label="Next month">&#8250;</button>
+      </div>
+      <div class="admin-calendar-weekdays" aria-hidden="true">${["S", "M", "T", "W", "T", "F", "S"].map(day => `<span>${day}</span>`).join("")}</div>
+      <div class="admin-calendar-grid">${cells.join("")}</div>
+      <div class="admin-calendar-actions">
+        <button class="button secondary admin-use-month" type="button">Use This Month</button>
+        <span>${escapeHtml(calendarRangeLabel(range))}</span>
+      </div>
+    </div>`;
+}
+
+function pickCalendarRangeDate(range, dateKey) {
+  if (!range.startDate || range.endDate) {
+    range.startDate = dateKey;
+    range.endDate = "";
+  } else if (dateKey < range.startDate) {
+    range.endDate = range.startDate;
+    range.startDate = dateKey;
+  } else {
+    range.endDate = dateKey;
+  }
+}
+
 function plantCardTemplate(plant) {
   const image = getPlantImage(plant);
   const images = plant.images && plant.images.length ? plant.images : [image];
@@ -1246,20 +1304,35 @@ function setupSidePanel() {
   });
 }
 
+function introLeafMarkup() {
+  return `<svg viewBox="0 0 64 88" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M32 4C16 14 6 32 6 50c0 18 12 32 26 34 14-2 26-16 26-34C58 32 48 14 32 4z" fill="currentColor"/>
+    <path d="M32 4v80" stroke="rgba(6,25,18,0.28)" stroke-width="2" stroke-linecap="round"/>
+  </svg>`;
+}
+
 function setupIntroAnimation() {
   if (window.matchMedia("(prefers-reduced-motion: reduce)").matches || sessionStorage.getItem("aquaIntroPlayed")) return;
 
   sessionStorage.setItem("aquaIntroPlayed", "true");
+  const isHome = Boolean(document.querySelector(".hero"));
   const intro = document.createElement("div");
   intro.className = "intro-splash";
   intro.innerHTML = `
+    ${isHome ? `<div class="intro-leaves" aria-hidden="true">
+      <span class="intro-leaf intro-leaf-left">${introLeafMarkup()}</span>
+      <span class="intro-leaf intro-leaf-right">${introLeafMarkup()}</span>
+    </div>` : ""}
+    ${isHome ? `<div class="intro-bubbles" aria-hidden="true">${Array.from({ length: 10 }).map(() => "<span></span>").join("")}</div>` : ""}
     <img class="intro-mark" src="assets/plantovia-logo.png" alt="Plantovia logo">
     <span>PLANTOVIA</span>
   `;
   document.body.appendChild(intro);
 
-  setTimeout(() => intro.classList.add("intro-hide"), 650);
-  setTimeout(() => intro.remove(), 1200);
+  const hideDelay = isHome ? 1550 : 650;
+  const removeDelay = isHome ? 2100 : 1200;
+  setTimeout(() => intro.classList.add("intro-hide"), hideDelay);
+  setTimeout(() => intro.remove(), removeDelay);
 }
 
 function setupScrollEffects() {
@@ -1809,6 +1882,47 @@ function setupAccountPage() {
   document.addEventListener("plantovia:password-recovery", enterPasswordRecoveryView);
   if (passwordRecoveryPending) enterPasswordRecoveryView();
 
+  let customerOrders = [];
+  let historyFiltersOpen = false;
+  const historyFilters = { minPrice: "", maxPrice: "", startDate: "", endDate: "" };
+  let historyCalendarMonth = new Date();
+  historyCalendarMonth = new Date(historyCalendarMonth.getFullYear(), historyCalendarMonth.getMonth(), 1);
+
+  function historyFilterCount() {
+    return Object.values(historyFilters).filter(value => String(value).trim()).length;
+  }
+
+  function visibleHistoryOrders() {
+    const min = historyFilters.minPrice === "" ? null : Number(historyFilters.minPrice);
+    const max = historyFilters.maxPrice === "" ? null : Number(historyFilters.maxPrice);
+
+    return customerOrders.filter(order => {
+      const total = Number(order.totals?.total || 0);
+      if (min !== null && Number.isFinite(min) && total < min) return false;
+      if (max !== null && Number.isFinite(max) && total > max) return false;
+      const created = dateKeyFromDate(new Date(order.createdAt || order.created_at));
+      if (historyFilters.startDate && created < historyFilters.startDate) return false;
+      if (historyFilters.endDate && created > historyFilters.endDate) return false;
+      return true;
+    });
+  }
+
+  function historyFilterTemplate() {
+    if (!historyFiltersOpen) return "";
+    return `
+      <section class="admin-filter-panel" aria-label="Order filters">
+        <div class="admin-filter-fields history-filter-fields">
+          <label>Minimum total<input id="history-filter-min" type="number" min="0" step="0.01" value="${escapeHtml(historyFilters.minPrice)}" placeholder="No minimum"></label>
+          <label>Maximum total<input id="history-filter-max" type="number" min="0" step="0.01" value="${escapeHtml(historyFilters.maxPrice)}" placeholder="No maximum"></label>
+        </div>
+        <div class="admin-filter-calendar-wrap">
+          <div><p class="eyebrow">Date range</p><p>Choose a start and end day, or select the entire displayed month.</p></div>
+          ${buildDateRangeCalendar(historyCalendarMonth, historyFilters)}
+        </div>
+        <button class="button secondary admin-clear-filters" type="button">Clear Filters</button>
+      </section>`;
+  }
+
   function orderHistoryTemplate(orders) {
     return `
       <div class="order-history-list">
@@ -1871,12 +1985,38 @@ function setupAccountPage() {
     `;
   }
 
-  async function renderPurchaseHistory() {
+  function renderHistoryList() {
+    if (!historyPanel) return;
+
+    if (!getCurrentUser()) {
+      historyPanel.innerHTML = `<p class="empty-state">Sign in to view your purchase history.</p>`;
+      return;
+    }
+
+    if (!customerOrders.length) {
+      historyPanel.innerHTML = `<p class="empty-state">No purchases yet. Your completed orders will appear here.</p>`;
+      return;
+    }
+
+    const matches = visibleHistoryOrders();
+
+    historyPanel.innerHTML = `
+      <div class="history-filter-bar">
+        <button class="button secondary history-filter-toggle" type="button" aria-expanded="${historyFiltersOpen}">Filters${historyFilterCount() ? ` (${historyFilterCount()})` : ""}</button>
+      </div>
+      ${historyFilterTemplate()}
+      <p class="admin-result-count">${matches.length} matching ${matches.length === 1 ? "order" : "orders"}</p>
+      ${matches.length ? orderHistoryTemplate(matches) : '<p class="empty-state">No orders match these filters.</p>'}
+    `;
+  }
+
+  async function loadPurchaseHistory() {
     if (!historyPanel) return;
 
     const currentUser = getCurrentUser();
 
     if (!currentUser) {
+      customerOrders = [];
       historyPanel.innerHTML = `<p class="empty-state">Sign in to view your purchase history.</p>`;
       return;
     }
@@ -1885,6 +2025,7 @@ function setupAccountPage() {
       const { data: userData } = await client.auth.getUser();
 
       if (!userData || !userData.user) {
+        customerOrders = [];
         historyPanel.innerHTML = `<p class="empty-state">Sign in to view your purchase history.</p>`;
         return;
       }
@@ -1896,31 +2037,26 @@ function setupAccountPage() {
         .order("created_at", { ascending: false });
 
       if (error) {
+        customerOrders = [];
         historyPanel.innerHTML = `<p class="empty-state">${escapeHtml(error.message)}</p>`;
         return;
       }
 
-      const orders = (rows || []).map(databaseOrderToRecord);
-
-      historyPanel.innerHTML = orders.length
-        ? orderHistoryTemplate(orders)
-        : `<p class="empty-state">No purchases yet. Your completed orders will appear here.</p>`;
+      customerOrders = (rows || []).map(databaseOrderToRecord);
+      renderHistoryList();
       return;
     }
 
     const history = getLocalPurchaseHistory();
-    const orders = history[currentUser] || [];
-
-    historyPanel.innerHTML = orders.length
-      ? orderHistoryTemplate(orders)
-      : `<p class="empty-state">No purchases yet. Your completed orders will appear here.</p>`;
+    customerOrders = history[currentUser] || [];
+    renderHistoryList();
   }
 
   async function loadSupabaseAccount() {
     updateAccountView();
 
     if (!client) {
-      renderPurchaseHistory();
+      loadPurchaseHistory();
       return;
     }
 
@@ -1935,7 +2071,7 @@ function setupAccountPage() {
 
     updateUserDisplay();
     updateAccountView();
-    renderPurchaseHistory();
+    loadPurchaseHistory();
   }
 
   signupBtn.addEventListener("click", async () => {
@@ -1984,7 +2120,7 @@ function setupAccountPage() {
     accountMessage.textContent = "Account created.";
     updateUserDisplay();
     updateAccountView();
-    renderPurchaseHistory();
+    loadPurchaseHistory();
   });
 
   signinBtn.addEventListener("click", async () => {
@@ -2018,7 +2154,7 @@ function setupAccountPage() {
       : "Signed in.";
     updateUserDisplay();
     updateAccountView();
-    renderPurchaseHistory();
+    loadPurchaseHistory();
   });
 
   document.addEventListener("click", async event => {
@@ -2031,7 +2167,7 @@ function setupAccountPage() {
     accountMessage.textContent = "Signed out.";
     updateUserDisplay();
     updateAccountView();
-    renderPurchaseHistory();
+    loadPurchaseHistory();
   });
 
   if (forgotBtn) {
@@ -2095,12 +2231,65 @@ function setupAccountPage() {
       accountMessage.textContent = "Password updated. You're signed in.";
       updateUserDisplay();
       updateAccountView();
-      renderPurchaseHistory();
+      loadPurchaseHistory();
     });
   }
 
   if (historyPanel) {
+    historyPanel.addEventListener("input", event => {
+      const fields = { "history-filter-min": "minPrice", "history-filter-max": "maxPrice" };
+      const key = fields[event.target.id];
+      if (!key) return;
+
+      historyFilters[key] = event.target.value;
+      const id = event.target.id;
+      renderHistoryList();
+
+      const input = document.getElementById(id);
+      if (input) {
+        input.focus();
+        if (input.setSelectionRange) input.setSelectionRange(input.value.length, input.value.length);
+      }
+    });
+
     historyPanel.addEventListener("click", async event => {
+      if (event.target.closest(".history-filter-toggle")) {
+        historyFiltersOpen = !historyFiltersOpen;
+        renderHistoryList();
+        return;
+      }
+
+      const monthButton = event.target.closest(".admin-calendar-month");
+      if (monthButton) {
+        historyCalendarMonth = new Date(
+          historyCalendarMonth.getFullYear(),
+          historyCalendarMonth.getMonth() + (monthButton.dataset.direction === "next" ? 1 : -1),
+          1
+        );
+        renderHistoryList();
+        return;
+      }
+
+      const dayButton = event.target.closest(".admin-calendar-day");
+      if (dayButton) {
+        pickCalendarRangeDate(historyFilters, dayButton.dataset.date);
+        renderHistoryList();
+        return;
+      }
+
+      if (event.target.closest(".admin-use-month")) {
+        historyFilters.startDate = dateKeyFromDate(new Date(historyCalendarMonth.getFullYear(), historyCalendarMonth.getMonth(), 1));
+        historyFilters.endDate = dateKeyFromDate(new Date(historyCalendarMonth.getFullYear(), historyCalendarMonth.getMonth() + 1, 0));
+        renderHistoryList();
+        return;
+      }
+
+      if (event.target.closest(".admin-clear-filters")) {
+        Object.keys(historyFilters).forEach(key => { historyFilters[key] = ""; });
+        renderHistoryList();
+        return;
+      }
+
       const confirmButton = event.target.closest(".confirm-order-received");
       if (!confirmButton) return;
 
@@ -2126,7 +2315,7 @@ function setupAccountPage() {
 
       try {
         await saveOrderConfirmation(confirmButton.dataset.orderId, signature);
-        await renderPurchaseHistory();
+        await loadPurchaseHistory();
       } catch (error) {
         confirmButton.textContent = error.message;
       }

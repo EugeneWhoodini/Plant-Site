@@ -6,7 +6,8 @@
       ["orders", "admin.html", "Processing Orders"],
       ["finalized", "admin-finalized.html", "Finalized Orders"],
       ["plants", "admin-plants.html", "Plant Catalogue"],
-      ["accounts", "admin-accounts.html", "Accounts"]
+      ["accounts", "admin-accounts.html", "Accounts"],
+      ["dashboard", "admin-dashboard.html", "Revenue Dashboard"]
     ];
     return `
       <nav class="admin-internal-nav" aria-label="Admin sections">
@@ -78,6 +79,7 @@
         return;
       }
       if (view === "accounts") window.PlantoviaAccountsAdmin.start(panel, client, navigation);
+      else if (view === "dashboard") window.PlantoviaDashboardAdmin.start(panel, client, navigation);
       else window.PlantoviaOrdersAdmin.start(panel, client, view, navigation);
     };
 
@@ -103,6 +105,7 @@
       }
       localStorage.setItem("currentUser", data.user.email);
       if (view === "accounts") window.PlantoviaAccountsAdmin.start(panel, client, navigation);
+      else if (view === "dashboard") window.PlantoviaDashboardAdmin.start(panel, client, navigation);
       else window.PlantoviaOrdersAdmin.start(panel, client, view, navigation);
     });
 
