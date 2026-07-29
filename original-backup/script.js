@@ -1200,43 +1200,23 @@ function setupIntroAnimation() {
 }
 
 function setupScrollEffects() {
-  const revealTargets = document.querySelectorAll("[data-reveal]");
-  const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-
-  if (reduceMotion || !("IntersectionObserver" in window)) {
-    revealTargets.forEach(target => target.classList.add("is-visible"));
-  } else {
-    const observer = new IntersectionObserver((entries, obs) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          entry.target.classList.add("is-visible");
-          obs.unobserve(entry.target);
-        }
-      });
-    }, { threshold: 0.12, rootMargin: "0px 0px -60px 0px" });
-
-    revealTargets.forEach(target => observer.observe(target));
-  }
-}
-
-function setupBackToTop() {
-  if (document.getElementById("aqua-back-to-top")) return;
-
-  const button = document.createElement("button");
-  button.id = "aqua-back-to-top";
-  button.type = "button";
-  button.className = "back-to-top";
-  button.setAttribute("aria-label", "Back to top");
-  button.innerHTML = "&uarr;";
-  document.body.appendChild(button);
-
-  button.addEventListener("click", () => {
-    window.scrollTo({ top: 0, behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
+  document.querySelectorAll("[data-reveal]").forEach(target => {
+    target.removeAttribute("data-reveal");
+    target.classList.add("is-visible");
   });
 
-  window.addEventListener("scroll", () => {
-    button.classList.toggle("is-visible", window.scrollY > 480);
-  }, { passive: true });
+  if (document.body.classList.contains("search-body")) return;
+
+  if (!document.querySelector(".side-art-field")) {
+    const artField = document.createElement("div");
+    artField.className = "side-art-field";
+    artField.setAttribute("aria-hidden", "true");
+    artField.innerHTML = `
+      <span class="side-art side-art-left"></span>
+      <span class="side-art side-art-right"></span>
+    `;
+    document.body.appendChild(artField);
+  }
 }
 
 function setupHeaderAutoHide() {
@@ -2674,5 +2654,4 @@ document.addEventListener("DOMContentLoaded", async () => {
   updateHeaderCart();
   setupHeaderAutoHide();
   setupScrollEffects();
-  setupBackToTop();
 });
