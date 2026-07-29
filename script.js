@@ -1312,6 +1312,7 @@ function introLeafMarkup() {
 }
 
 function setupIntroAnimation() {
+  if (!window.matchMedia("(max-width: 850px)").matches) return;
   if (sessionStorage.getItem("aquaIntroPlayed")) return;
 
   sessionStorage.setItem("aquaIntroPlayed", "true");
@@ -1852,6 +1853,21 @@ function setupAccountPage() {
 
   if (!signupBtn || !signinBtn || !accountMessage) return;
 
+  const signupUsernameInput = document.getElementById("signup-username");
+  const signupPasswordInput = document.getElementById("signup-password");
+  const signinUsernameInput = document.getElementById("signin-username");
+  const signinPasswordInput = document.getElementById("signin-password");
+
+  function resetAuthFields() {
+    if (signupUsernameInput) signupUsernameInput.value = "";
+    if (signupPasswordInput) signupPasswordInput.value = "";
+    if (signinUsernameInput) signinUsernameInput.value = localStorage.getItem("lastSignInEmail") || "";
+    if (signinPasswordInput) signinPasswordInput.value = "";
+  }
+
+  resetAuthFields();
+  setTimeout(resetAuthFields, 80);
+
   const accountNotice = sessionStorage.getItem("plantoviaAccountNotice");
   if (accountNotice) {
     accountMessage.textContent = accountNotice;
@@ -2131,6 +2147,7 @@ function setupAccountPage() {
     }
 
     localStorage.setItem("currentUser", data.user ? data.user.email : username);
+    localStorage.setItem("lastSignInEmail", data.user ? data.user.email : username);
     localStorage.removeItem("adminSession");
     accountMessage.textContent = "Account created.";
     updateUserDisplay();
@@ -2163,6 +2180,7 @@ function setupAccountPage() {
     }
 
     localStorage.setItem("currentUser", data.user.email);
+    localStorage.setItem("lastSignInEmail", data.user.email);
     localStorage.removeItem("adminSession");
     accountMessage.innerHTML = isAdminUser(data.user.email)
       ? `Signed in as admin. <a href="admin.html">Open admin panel</a>.`
