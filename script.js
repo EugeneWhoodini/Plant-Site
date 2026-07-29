@@ -1312,27 +1312,28 @@ function introLeafMarkup() {
 }
 
 function setupIntroAnimation() {
+  const isHome = Boolean(document.querySelector(".hero"));
+  if (!isHome) return;
   if (!window.matchMedia("(max-width: 850px)").matches) return;
   if (sessionStorage.getItem("aquaIntroPlayed")) return;
 
   sessionStorage.setItem("aquaIntroPlayed", "true");
-  const isHome = Boolean(document.querySelector(".hero"));
   const intro = document.createElement("div");
   intro.className = "intro-splash";
   intro.innerHTML = `
-    ${isHome ? `<div class="intro-leaves" aria-hidden="true">
+    <div class="intro-leaves" aria-hidden="true">
       <span class="intro-leaf intro-leaf-left">${introLeafMarkup()}</span>
       <span class="intro-leaf intro-leaf-right">${introLeafMarkup()}</span>
-    </div>` : ""}
-    ${isHome ? `<div class="intro-bubbles" aria-hidden="true">${Array.from({ length: 16 }).map(() => "<span></span>").join("")}</div>` : ""}
-    ${isHome ? '<div class="intro-burst" aria-hidden="true"></div>' : ""}
+    </div>
+    <div class="intro-bubbles" aria-hidden="true">${Array.from({ length: 16 }).map(() => "<span></span>").join("")}</div>
+    <div class="intro-burst" aria-hidden="true"></div>
     <img class="intro-mark" src="assets/plantovia-logo.png" alt="Plantovia logo">
     <span>PLANTOVIA</span>
   `;
   document.body.appendChild(intro);
 
-  const hideDelay = isHome ? 1700 : 650;
-  const removeDelay = isHome ? 2250 : 1200;
+  const hideDelay = 1700;
+  const removeDelay = 2250;
   setTimeout(() => intro.classList.add("intro-hide"), hideDelay);
   setTimeout(() => intro.remove(), removeDelay);
 }
@@ -1884,7 +1885,12 @@ function setupAccountPage() {
   function urlIndicatesPasswordRecovery() {
     const query = new URLSearchParams(window.location.search);
     const hash = new URLSearchParams(window.location.hash.replace(/^#/, ""));
-    return query.get("type") === "recovery" || hash.get("type") === "recovery";
+    if (query.get("type") === "recovery" || hash.get("type") === "recovery") return true;
+
+    // Supabase's PKCE flow redirects here with only "?code=..." and no "type" param.
+    // The only place account.html is ever sent a bare auth code is the password-reset
+    // redirectTo, so treat that as a recovery link too.
+    return query.has("code");
   }
 
   let inPasswordRecovery = urlIndicatesPasswordRecovery();
