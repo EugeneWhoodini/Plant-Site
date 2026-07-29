@@ -1,4 +1,17 @@
-let cart = JSON.parse(localStorage.getItem("cart")) || [];
+function sanitizeCartItems(items) {
+  if (!Array.isArray(items)) return [];
+
+  return items
+    .filter(item => item && typeof item === "object" && item.id)
+    .map(item => {
+      const roundedQuantity = Math.round(Number(item.quantity));
+      const safeQuantity = Number.isFinite(roundedQuantity) ? Math.min(99, Math.max(1, roundedQuantity)) : 1;
+      return { ...item, quantity: safeQuantity };
+    });
+}
+
+let cart = sanitizeCartItems(JSON.parse(localStorage.getItem("cart")) || []);
+localStorage.setItem("cart", JSON.stringify(cart));
 
 const TAX_RATE = 0.13;
 const SHIPPING_COST = 5.00;
@@ -32,6 +45,7 @@ let runtimeCategories = null;
 let runtimeSiteSettings = null;
 let supabaseClient = null;
 let backendDataPromise = null;
+let passwordRecoveryPending = false;
 let activeCategoryFilter = "all";
 let activeCatalogueSearch = "";
 
@@ -75,6 +89,12 @@ function getSupabaseClient() {
 
   if (!supabaseClient) {
     supabaseClient = supabase.createClient(config.supabaseUrl, config.supabaseAnonKey);
+    supabaseClient.auth.onAuthStateChange(event => {
+      if (event === "PASSWORD_RECOVERY") {
+        passwordRecoveryPending = true;
+        document.dispatchEvent(new CustomEvent("plantovia:password-recovery"));
+      }
+    });
   }
 
   return supabaseClient;
@@ -498,16 +518,17 @@ function saveCart() {
 function addToCart(plant, quantity = 1) {
   const existingItem = cart.find(item => item.name === plant.name);
   const image = getPlantImage(plant);
+  const addedQuantity = Math.max(1, Math.round(Number(quantity)) || 1);
 
   if (existingItem) {
-    existingItem.quantity += quantity;
+    existingItem.quantity = Math.min(99, Math.max(1, Math.round(Number(existingItem.quantity)) || 0) + addedQuantity);
   } else {
     cart.push({
       id: plant.id,
       name: plant.name,
       price: plant.price,
       image,
-      quantity
+      quantity: addedQuantity
     });
   }
 
@@ -687,7 +708,7 @@ async function placeOrderInBackend(deliveryInfo) {
     throw new Error("Sign in before submitting your order so it can be saved to your account.");
   }
 
-  const orderItems = cart.map(item => ({ id: item.id, quantity: Number(item.quantity || 0) }));
+  const orderItems = sanitizeCartItems(cart).map(item => ({ id: item.id, quantity: item.quantity }));
   const { data, error } = await client.rpc("place_order", {
     p_items: orderItems,
     p_delivery_info: deliveryInfo
@@ -1082,56 +1103,91 @@ function setupSidePanel() {
   if (document.querySelector(".admin-page") || document.querySelector(".search-page") || document.getElementById("aqua-side-panel")) return;
 
   const categories = getCategoryList();
+
+  const scrim = document.createElement("div");
+  scrim.id = "aqua-drawer-scrim";
+  scrim.className = "shop-drawer-scrim";
+  document.body.appendChild(scrim);
+
   const panel = document.createElement("aside");
   panel.id = "aqua-side-panel";
-  panel.className = "side-panel";
+  panel.className = "shop-drawer";
+  panel.setAttribute("aria-hidden", "true");
   panel.innerHTML = `
-    <button class="side-panel-toggle" type="button" aria-label="Open site tools" aria-expanded="false">
-      <span aria-hidden="true">&rsaquo;</span>
-    </button>
-    <div class="side-panel-body">
-      <div class="side-panel-heading">
-        <strong>Shop tools</strong>
+    <div class="shop-drawer-head">
+      <div class="shop-drawer-title">
+        <img class="shop-drawer-logo" src="assets/plantovia-logo.png" alt="">
+        <strong>Shop menu</strong>
       </div>
-
-      <details open>
-        <summary>Search plants</summary>
+      <button class="shop-drawer-close" type="button" aria-label="Close menu">&times;</button>
+    </div>
+    <div class="shop-drawer-body">
+      <section class="shop-drawer-section">
+        <h3>Search plants</h3>
         <input id="side-panel-search" type="search" placeholder="Search by plant or tag">
-      </details>
+      </section>
 
-      <details open>
-        <summary>Browse categories</summary>
+      <section class="shop-drawer-section">
+        <h3>Browse categories</h3>
         <div class="side-category-list">
           <button class="side-category active" type="button" data-category="all">All plants</button>
           ${categories.map(category => `<button class="side-category" type="button" data-category="${escapeHtml(category)}">${escapeHtml(category)}</button>`).join("")}
         </div>
-      </details>
+      </section>
 
-      <details>
-        <summary>Contact</summary>
+      <section class="shop-drawer-section">
+        <h3>Contact</h3>
         <a href="index.html#contact">Contact Plantovia</a>
         <a href="delivery.html">Delivery info</a>
-      </details>
+      </section>
 
-      <details>
-        <summary>Useful links</summary>
+      <section class="shop-drawer-section">
+        <h3>Useful links</h3>
         <a href="index.html#plant-grid">Catalogue</a>
         <a href="search.html">Full search page</a>
         <a href="cart.html">Cart</a>
         <a href="payment.html">Payment</a>
-      </details>
+      </section>
     </div>
   `;
 
   document.body.appendChild(panel);
 
-  const toggle = panel.querySelector(".side-panel-toggle");
+  const triggers = [];
+  document.querySelectorAll(".top-menu").forEach(menu => {
+    const trigger = document.createElement("button");
+    trigger.type = "button";
+    trigger.className = "menu-trigger";
+    trigger.setAttribute("aria-haspopup", "true");
+    trigger.setAttribute("aria-expanded", "false");
+    trigger.setAttribute("aria-controls", "aqua-side-panel");
+    trigger.innerHTML = `<span class="menu-trigger-icon" aria-hidden="true"><span></span></span>Menu`;
+    menu.insertAdjacentElement("afterbegin", trigger);
+    triggers.push(trigger);
+  });
+
   const search = panel.querySelector("#side-panel-search");
+  const closeBtn = panel.querySelector(".shop-drawer-close");
+
+  function openPanel() {
+    panel.classList.add("open");
+    scrim.classList.add("open");
+    panel.setAttribute("aria-hidden", "false");
+    document.body.classList.add("drawer-open");
+    triggers.forEach(trigger => trigger.setAttribute("aria-expanded", "true"));
+  }
+
+  function closePanel() {
+    panel.classList.remove("open");
+    scrim.classList.remove("open");
+    panel.setAttribute("aria-hidden", "true");
+    document.body.classList.remove("drawer-open");
+    triggers.forEach(trigger => trigger.setAttribute("aria-expanded", "false"));
+  }
 
   function togglePanel() {
-    const isOpen = panel.classList.toggle("open");
-    toggle.setAttribute("aria-expanded", String(isOpen));
-    toggle.setAttribute("aria-label", isOpen ? "Close site tools" : "Open site tools");
+    if (panel.classList.contains("open")) closePanel();
+    else openPanel();
   }
 
   function focusCatalogue() {
@@ -1158,7 +1214,13 @@ function setupSidePanel() {
     }
   }
 
-  toggle.addEventListener("click", togglePanel);
+  triggers.forEach(trigger => trigger.addEventListener("click", togglePanel));
+  closeBtn.addEventListener("click", closePanel);
+  scrim.addEventListener("click", closePanel);
+
+  document.addEventListener("keydown", event => {
+    if (event.key === "Escape" && panel.classList.contains("open")) closePanel();
+  });
 
   search.addEventListener("input", () => {
     runSidePanelSearch();
@@ -1180,6 +1242,7 @@ function setupSidePanel() {
     });
     renderPlants();
     focusCatalogue();
+    closePanel();
   });
 }
 
@@ -1335,7 +1398,7 @@ function setupCartPage() {
         const item = cart[index];
 
         if (!item) return;
-        item.quantity++;
+        item.quantity = Math.min(99, (Math.round(Number(item.quantity)) || 0) + 1);
         saveCart();
         renderCart();
         updateHeaderCart();
@@ -1348,7 +1411,7 @@ function setupCartPage() {
         const item = cart[index];
 
         if (!item) return;
-        if (item.quantity <= 1) {
+        if ((Math.round(Number(item.quantity)) || 0) <= 1) {
           cart.splice(index, 1);
         } else {
           item.quantity--;
@@ -1704,6 +1767,13 @@ function setupAccountPage() {
   const signinBtn = document.getElementById("signin-btn");
   const accountMessage = document.getElementById("account-message");
   const historyPanel = document.getElementById("purchase-history");
+  const statusBox = document.getElementById("account-status-box");
+  const statusEmail = document.getElementById("account-status-email");
+  const signupBox = document.getElementById("signup-box");
+  const signinBox = document.getElementById("signin-box");
+  const resetBox = document.getElementById("reset-password-box");
+  const forgotBtn = document.getElementById("forgot-password-btn");
+  const resetBtn = document.getElementById("reset-password-btn");
   const client = getSupabaseClient();
 
   if (!signupBtn || !signinBtn || !accountMessage) return;
@@ -1713,6 +1783,31 @@ function setupAccountPage() {
     accountMessage.textContent = accountNotice;
     sessionStorage.removeItem("plantoviaAccountNotice");
   }
+
+  function showAuthView(mode) {
+    if (statusBox) statusBox.hidden = mode !== "signed-in";
+    if (signupBox) signupBox.hidden = mode !== "signed-out";
+    if (signinBox) signinBox.hidden = mode !== "signed-out";
+    if (resetBox) resetBox.hidden = mode !== "reset";
+  }
+
+  function updateAccountView() {
+    const currentUser = getCurrentUser();
+    if (currentUser) {
+      if (statusEmail) statusEmail.textContent = currentUser;
+      showAuthView("signed-in");
+    } else {
+      showAuthView("signed-out");
+    }
+  }
+
+  function enterPasswordRecoveryView() {
+    showAuthView("reset");
+    accountMessage.textContent = "Choose a new password to finish resetting your account.";
+  }
+
+  document.addEventListener("plantovia:password-recovery", enterPasswordRecoveryView);
+  if (passwordRecoveryPending) enterPasswordRecoveryView();
 
   function orderHistoryTemplate(orders) {
     return `
@@ -1780,9 +1875,6 @@ function setupAccountPage() {
     if (!historyPanel) return;
 
     const currentUser = getCurrentUser();
-    const signoutButton = document.getElementById("customer-signout");
-
-    if (signoutButton) signoutButton.hidden = !currentUser;
 
     if (!currentUser) {
       historyPanel.innerHTML = `<p class="empty-state">Sign in to view your purchase history.</p>`;
@@ -1825,6 +1917,8 @@ function setupAccountPage() {
   }
 
   async function loadSupabaseAccount() {
+    updateAccountView();
+
     if (!client) {
       renderPurchaseHistory();
       return;
@@ -1835,9 +1929,12 @@ function setupAccountPage() {
     if (data && data.user) {
       localStorage.setItem("currentUser", data.user.email);
       localStorage.removeItem("adminSession");
-      updateUserDisplay();
+    } else if (getCurrentUser()) {
+      localStorage.removeItem("currentUser");
     }
 
+    updateUserDisplay();
+    updateAccountView();
     renderPurchaseHistory();
   }
 
@@ -1865,17 +1962,28 @@ function setupAccountPage() {
       return;
     }
 
-    const { data, error } = await client.auth.signUp({ email: username, password });
+    const { data, error } = await client.auth.signUp({
+      email: username,
+      password,
+      options: { emailRedirectTo: `${window.location.origin}/confirmed.html` }
+    });
 
     if (error) {
       accountMessage.textContent = error.message;
       return;
     }
 
+    if (data.user && !data.session) {
+      accountMessage.textContent = "Account created. Check your inbox and confirm your email, then sign in below.";
+      updateAccountView();
+      return;
+    }
+
     localStorage.setItem("currentUser", data.user ? data.user.email : username);
     localStorage.removeItem("adminSession");
-    accountMessage.textContent = "Account created. If Supabase asks for email confirmation, check your inbox.";
+    accountMessage.textContent = "Account created.";
     updateUserDisplay();
+    updateAccountView();
     renderPurchaseHistory();
   });
 
@@ -1899,6 +2007,7 @@ function setupAccountPage() {
       await client.auth.signOut();
       localStorage.removeItem("currentUser");
       accountMessage.textContent = "This Plantovia account has been blocked. Contact plantovia.shop@gmail.com for help.";
+      updateAccountView();
       return;
     }
 
@@ -1908,6 +2017,7 @@ function setupAccountPage() {
       ? `Signed in as admin. <a href="admin.html">Open admin panel</a>.`
       : "Signed in.";
     updateUserDisplay();
+    updateAccountView();
     renderPurchaseHistory();
   });
 
@@ -1920,8 +2030,74 @@ function setupAccountPage() {
     localStorage.removeItem("adminSession");
     accountMessage.textContent = "Signed out.";
     updateUserDisplay();
+    updateAccountView();
     renderPurchaseHistory();
   });
+
+  if (forgotBtn) {
+    forgotBtn.addEventListener("click", async () => {
+      const email = document.getElementById("signin-username").value.trim();
+
+      if (!email) {
+        accountMessage.textContent = "Enter your email address above, then choose \"Forgot your password?\" again.";
+        document.getElementById("signin-username").focus();
+        return;
+      }
+
+      if (!client) {
+        accountMessage.textContent = "Online accounts are temporarily unavailable. Please try again later.";
+        return;
+      }
+
+      forgotBtn.disabled = true;
+      const { error } = await client.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/account.html`
+      });
+      forgotBtn.disabled = false;
+
+      accountMessage.textContent = error
+        ? error.message
+        : "If that email has a Plantovia account, a password reset link has been sent.";
+    });
+  }
+
+  if (resetBtn) {
+    resetBtn.addEventListener("click", async () => {
+      const newPassword = document.getElementById("reset-password-new").value.trim();
+
+      if (newPassword.length < 8) {
+        accountMessage.textContent = "Use a password with at least 8 characters.";
+        return;
+      }
+
+      if (!client) {
+        accountMessage.textContent = "Online accounts are temporarily unavailable. Please try again later.";
+        return;
+      }
+
+      resetBtn.disabled = true;
+      resetBtn.textContent = "Updating...";
+      const { data, error } = await client.auth.updateUser({ password: newPassword });
+      resetBtn.disabled = false;
+      resetBtn.textContent = "Update Password";
+
+      if (error) {
+        accountMessage.textContent = error.message;
+        return;
+      }
+
+      if (data.user) {
+        localStorage.setItem("currentUser", data.user.email);
+        localStorage.removeItem("adminSession");
+      }
+
+      passwordRecoveryPending = false;
+      accountMessage.textContent = "Password updated. You're signed in.";
+      updateUserDisplay();
+      updateAccountView();
+      renderPurchaseHistory();
+    });
+  }
 
   if (historyPanel) {
     historyPanel.addEventListener("click", async event => {
@@ -1955,10 +2131,6 @@ function setupAccountPage() {
         confirmButton.textContent = error.message;
       }
     });
-  }
-
-  if (historyPanel && !document.getElementById("customer-signout")) {
-    historyPanel.insertAdjacentHTML("beforebegin", `<button id="customer-signout" class="button secondary account-signout" type="button">Sign Out</button>`);
   }
 
   loadSupabaseAccount();
