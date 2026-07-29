@@ -1410,6 +1410,8 @@ textarea {
 #account-message {
   grid-column: 1 / -1;
   text-align: center;
+  color: #f2fff7;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.4);
 }
 
 .order-history-panel {
@@ -2161,10 +2163,17 @@ textarea {
   transition: opacity 0.5s var(--ease), transform 0.5s var(--ease), visibility 0.5s var(--ease);
 }
 
-.intro-splash span {
+.intro-splash > span:last-child {
   font-size: 18px;
   font-weight: 800;
   letter-spacing: 0.06em;
+  opacity: 0;
+  animation: introTextIn 0.7s var(--ease) 0.5s forwards;
+}
+
+@keyframes introTextIn {
+  from { opacity: 0; letter-spacing: 0.3em; transform: translateY(6px); }
+  to { opacity: 1; letter-spacing: 0.06em; transform: none; }
 }
 
 .intro-mark {
@@ -2177,12 +2186,38 @@ textarea {
   border-radius: var(--radius);
   background: rgba(255, 255, 255, 0.94);
   box-shadow: var(--shadow-lg);
-  animation: introFloat 1.6s ease-in-out infinite;
+  animation: introPop 0.6s var(--ease) both, introFloat 1.6s ease-in-out 0.6s infinite;
+}
+
+@keyframes introPop {
+  0% { opacity: 0; transform: scale(0.4) rotate(-14deg); }
+  60% { opacity: 1; transform: scale(1.12) rotate(4deg); }
+  100% { opacity: 1; transform: scale(1) rotate(0deg); }
 }
 
 @keyframes introFloat {
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(-8px); }
+}
+
+.intro-burst {
+  position: absolute;
+  z-index: 0;
+  top: 50%;
+  left: 50%;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.9), rgba(79, 193, 198, 0.5) 45%, transparent 72%);
+  transform: translate(-50%, -50%) scale(0.3);
+  opacity: 0;
+  animation: introBurst 1s var(--ease) forwards;
+}
+
+@keyframes introBurst {
+  0% { transform: translate(-50%, -50%) scale(0.2); opacity: 0.9; }
+  70% { opacity: 0.35; }
+  100% { transform: translate(-50%, -50%) scale(7); opacity: 0; }
 }
 
 .intro-hide {
@@ -2264,6 +2299,12 @@ textarea {
 .intro-bubbles span:nth-child(8) { left: 76%; width: 10px; height: 10px; animation-duration: 3.3s; animation-delay: 0.65s; }
 .intro-bubbles span:nth-child(9) { left: 86%; width: 15px; height: 15px; animation-duration: 4s; animation-delay: 0.35s; }
 .intro-bubbles span:nth-child(10) { left: 94%; width: 8px; height: 8px; animation-duration: 2.8s; animation-delay: 1s; }
+.intro-bubbles span:nth-child(11) { left: 4%; width: 11px; height: 11px; animation-duration: 3.4s; animation-delay: 0.7s; }
+.intro-bubbles span:nth-child(12) { left: 22%; width: 6px; height: 6px; animation-duration: 2.6s; animation-delay: 0.2s; }
+.intro-bubbles span:nth-child(13) { left: 41%; width: 17px; height: 17px; animation-duration: 4.3s; animation-delay: 0.85s; }
+.intro-bubbles span:nth-child(14) { left: 61%; width: 9px; height: 9px; animation-duration: 3.1s; animation-delay: 0.5s; }
+.intro-bubbles span:nth-child(15) { left: 80%; width: 12px; height: 12px; animation-duration: 3.7s; animation-delay: 1.1s; }
+.intro-bubbles span:nth-child(16) { left: 98%; width: 7px; height: 7px; animation-duration: 2.7s; animation-delay: 0.3s; }
 
 .intro-mark,
 .intro-splash > span:last-child {
@@ -2810,11 +2851,11 @@ body.drawer-open {
   padding: 0;
   border: 1px solid transparent;
   border-radius: 50%;
-  background: var(--surface-alt);
-  color: var(--ink);
+  background: #e2e7e4;
+  color: #6b7972;
   cursor: pointer;
   font-weight: 800;
-  transition: background 0.2s var(--ease), border-color 0.2s var(--ease);
+  transition: background 0.2s var(--ease), border-color 0.2s var(--ease), color 0.2s var(--ease);
 }
 
 .admin-calendar-day:hover,
@@ -2822,10 +2863,7 @@ body.drawer-open {
   border-color: var(--brand);
 }
 
-.admin-calendar-day.in-range {
-  background: #dff0e6;
-}
-
+.admin-calendar-day.in-range,
 .admin-calendar-day.selected {
   background: linear-gradient(135deg, var(--brand-light), var(--brand-dark));
   color: white;

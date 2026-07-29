@@ -1312,7 +1312,7 @@ function introLeafMarkup() {
 }
 
 function setupIntroAnimation() {
-  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches || sessionStorage.getItem("aquaIntroPlayed")) return;
+  if (sessionStorage.getItem("aquaIntroPlayed")) return;
 
   sessionStorage.setItem("aquaIntroPlayed", "true");
   const isHome = Boolean(document.querySelector(".hero"));
@@ -1323,14 +1323,15 @@ function setupIntroAnimation() {
       <span class="intro-leaf intro-leaf-left">${introLeafMarkup()}</span>
       <span class="intro-leaf intro-leaf-right">${introLeafMarkup()}</span>
     </div>` : ""}
-    ${isHome ? `<div class="intro-bubbles" aria-hidden="true">${Array.from({ length: 10 }).map(() => "<span></span>").join("")}</div>` : ""}
+    ${isHome ? `<div class="intro-bubbles" aria-hidden="true">${Array.from({ length: 16 }).map(() => "<span></span>").join("")}</div>` : ""}
+    ${isHome ? '<div class="intro-burst" aria-hidden="true"></div>' : ""}
     <img class="intro-mark" src="assets/plantovia-logo.png" alt="Plantovia logo">
     <span>PLANTOVIA</span>
   `;
   document.body.appendChild(intro);
 
-  const hideDelay = isHome ? 1550 : 650;
-  const removeDelay = isHome ? 2100 : 1200;
+  const hideDelay = isHome ? 1700 : 650;
+  const removeDelay = isHome ? 2250 : 1200;
   setTimeout(() => intro.classList.add("intro-hide"), hideDelay);
   setTimeout(() => intro.remove(), removeDelay);
 }
