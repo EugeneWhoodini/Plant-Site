@@ -4,28 +4,21 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>PLANTOVIA</title>
-  <link rel="stylesheet" href="style.css?v=20260730-fixes4" />
+  <link rel="stylesheet" href="style.css?v=20260730-redesign" />
   <link rel="icon" type="image/png" href="assets/favicon.png" />
 </head>
 <body data-page="all">
   <header class="site-header">
     <a class="brand" href="index.html">
       <img class="brand-logo" src="assets/plantovia-logo.png" alt="Plantovia logo">
-      <span>
-        <strong>PLANTOVIA</strong>
-        <small>Aquarium plants grown for healthy tanks</small>
-      </span>
     </a>
 
     <nav class="top-menu" aria-label="Main navigation">
-      <a href="search.html">Search</a>
-      <a href="#contact">Contact</a>
       <a href="cart.html" class="cart-summary-link">
         <span class="cart-summary-title">Cart</span>
         <span class="cart-summary-meta"><span id="cart-count">0 items</span></span>
         <span class="cart-summary-total">$<span id="cart-total">0.00</span></span>
       </a>
-      <a href="account.html" class="account-nav-link"><span class="account-nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4.4 3.6-8 8-8s8 3.6 8 8"/></svg></span><span id="user-display">Guest</span></a>
     </nav>
   </header>
 
@@ -42,9 +35,23 @@
       <div class="hero-actions">
         <a class="button primary" href="#plant-grid">Shop plants</a>
         <a class="button secondary" href="search.html">Find a plant</a>
-        <a class="button secondary" href="#contact">Contact us</a>
+        <a class="button secondary" href="contact.html">Contact us</a>
       </div>
     </div>
+  </section>
+
+  <section class="brand-title-card" data-reveal>
+    <div class="brand-title-bubbles" aria-hidden="true">
+      <span></span><span></span><span></span><span></span>
+      <span></span><span></span><span></span><span></span>
+      <span></span><span></span>
+    </div>
+    <div class="brand-title-leaves" aria-hidden="true">
+      <span class="brand-leaf brand-leaf-left"><svg viewBox="0 0 64 88" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M32 4C16 14 6 32 6 50c0 18 12 32 26 34 14-2 26-16 26-34C58 32 48 14 32 4z" fill="currentColor"/><path d="M32 4v80" stroke="rgba(6,25,18,0.28)" stroke-width="2" stroke-linecap="round"/></svg></span>
+      <span class="brand-leaf brand-leaf-right"><svg viewBox="0 0 64 88" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M32 4C16 14 6 32 6 50c0 18 12 32 26 34 14-2 26-16 26-34C58 32 48 14 32 4z" fill="currentColor"/><path d="M32 4v80" stroke="rgba(6,25,18,0.28)" stroke-width="2" stroke-linecap="round"/></svg></span>
+    </div>
+    <p class="brand-title-eyebrow">Est. for planted tanks</p>
+    <h2 class="brand-title-text">PLANTOVIA</h2>
   </section>
 
   <section class="shipping-banner" data-reveal>
@@ -94,33 +101,9 @@
 
   <main class="plant-grid" id="plant-grid"></main>
 
-  <section class="contact-section" id="contact" data-reveal>
-    <div class="section-heading">
-      <p class="eyebrow">Contact</p>
-      <h2>Ask Plantovia a question</h2>
-      <p>Messages and e-transfer questions go to <strong>plantovia.shop@gmail.com</strong>.</p>
-    </div>
-    <form id="contact-form" class="contact-form">
-      <label for="contact-name">Name</label>
-      <input type="text" id="contact-name" placeholder="Your name">
-
-      <label for="contact-email">Email</label>
-      <input type="email" id="contact-email" placeholder="Your email">
-
-      <label for="contact-subject">Subject</label>
-      <input type="text" id="contact-subject" placeholder="Plant question, delivery, order help...">
-
-      <label for="contact-body">Message</label>
-      <textarea id="contact-body" rows="6" placeholder="Write your message here"></textarea>
-
-      <button class="button primary" type="submit">Send Email</button>
-      <p id="contact-message" class="form-message"></p>
-    </form>
-  </section>
-
   <script src="plants.js"></script>
   <script src="config.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="script.js?v=20260730-fixes4"></script>
+  <script src="script.js?v=20260730-redesign"></script>
 </body>
 </html>

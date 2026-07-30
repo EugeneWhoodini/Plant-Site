@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PLANTOVIA | Contact</title>
+  <link rel="stylesheet" href="style.css?v=20260730-redesign" />
+  <link rel="icon" type="image/png" href="assets/favicon.png" />
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="index.html">
+      <img class="brand-logo" src="assets/plantovia-logo.png" alt="Plantovia logo">
+    </a>
+    <nav class="top-menu" aria-label="Main navigation">
+      <a href="cart.html" class="cart-summary-link"><span class="cart-summary-title">Cart</span><span class="cart-summary-meta"><span id="cart-count">0 items</span></span><span class="cart-summary-total">$<span id="cart-total">0.00</span></span></a>
+    </nav>
+  </header>
+
+  <main class="contact-page-main" data-reveal>
+    <section class="contact-section" id="contact">
+      <div class="section-heading">
+        <p class="eyebrow">Contact</p>
+        <h2>Ask Plantovia a question</h2>
+        <p>Messages and e-transfer questions go to <strong>plantovia.shop@gmail.com</strong>.</p>
+      </div>
+      <form id="contact-form" class="contact-form">
+        <label for="contact-name">Name</label>
+        <input type="text" id="contact-name" placeholder="Your name">
+
+        <label for="contact-email">Email</label>
+        <input type="email" id="contact-email" placeholder="Your email">
+
+        <label for="contact-subject">Subject</label>
+        <input type="text" id="contact-subject" placeholder="Plant question, delivery, order help...">
+
+        <label for="contact-body">Message</label>
+        <textarea id="contact-body" rows="6" placeholder="Write your message here"></textarea>
+
+        <button class="button primary" type="submit">Send Email</button>
+        <p id="contact-message" class="form-message"></p>
+      </form>
+    </section>
+  </main>
+
+  <script src="config.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="script.js?v=20260730-redesign"></script>
+</body>
+</html>

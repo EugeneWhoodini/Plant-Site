@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>PLANTOVIA | Order Received</title>
+  <title>PLANTOVIA | Purchase History</title>
   <link rel="stylesheet" href="style.css?v=20260730-redesign" />
   <link rel="icon" type="image/png" href="assets/favicon.png" />
 </head>
@@ -17,24 +17,18 @@
     </nav>
   </header>
 
-  <main class="form-page success-page" data-reveal>
-    <p class="eyebrow">Thank you</p>
-    <h1>Your order has been received.</h1>
-    <div class="success-order-reference">
-      <span>Order number</span>
-      <strong id="success-order-number">Loading...</strong>
-      <span>Total due</span>
-      <strong id="success-order-total">$0.00</strong>
-    </div>
-    <p>Send the exact total by e-transfer to <strong>plantovia.shop@gmail.com</strong> and put your order number in the message.</p>
-    <p id="success-receipt-status" class="receipt-status"></p>
-    <div class="success-actions">
-      <a href="account.html" class="button primary">View Order History</a>
-      <a href="index.html" class="button secondary">Back to Shop</a>
-    </div>
+  <main class="account-page purchase-history-page" data-reveal>
+    <section class="account-box order-history-panel">
+      <div class="order-history-title">
+        <div>
+          <p class="eyebrow">Purchase history</p>
+          <h1>Your orders</h1>
+        </div>
+      </div>
+      <div id="purchase-history"></div>
+    </section>
   </main>
 
-  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
   <script src="config.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="script.js?v=20260730-redesign"></script>

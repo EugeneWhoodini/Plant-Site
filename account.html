@@ -4,20 +4,15 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>PLANTOVIA | Account</title>
-  <link rel="stylesheet" href="style.css?v=20260730-fixes4" />
+  <link rel="stylesheet" href="style.css?v=20260730-redesign" />
   <link rel="icon" type="image/png" href="assets/favicon.png" />
 </head>
 <body>
   <header class="site-header">
     <a class="brand" href="index.html">
       <img class="brand-logo" src="assets/plantovia-logo.png" alt="Plantovia logo">
-      <span>
-        <strong>PLANTOVIA</strong>
-        <small>Customer account</small>
-      </span>
     </a>
     <nav class="top-menu" aria-label="Main navigation">
-      <a href="index.html">Home</a>
       <a href="cart.html" class="cart-summary-link"><span class="cart-summary-title">Cart</span><span class="cart-summary-meta"><span id="cart-count">0 items</span></span><span class="cart-summary-total">$<span id="cart-total">0.00</span></span></a>
     </nav>
   </header>
@@ -27,6 +22,7 @@
       <p class="eyebrow">Your account</p>
       <h1>You're signed in</h1>
       <p class="account-status-line">Signed in as <strong id="account-status-email"></strong></p>
+      <a href="purchase-history.html" class="button secondary">View Purchase History</a>
       <button id="customer-signout" class="button account-signout" type="button">Sign Out</button>
     </section>
 
@@ -56,21 +52,11 @@
     </section>
 
     <p id="account-message" class="form-message"></p>
-
-    <section class="account-box order-history-panel">
-      <div class="order-history-title">
-        <div>
-          <p class="eyebrow">Purchase history</p>
-          <h1>Your orders</h1>
-        </div>
-      </div>
-      <div id="purchase-history"></div>
-    </section>
   </main>
 
   <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
   <script src="config.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="script.js?v=20260730-fixes4"></script>
+  <script src="script.js?v=20260730-redesign"></script>
 </body>
 </html>

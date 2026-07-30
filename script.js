@@ -769,24 +769,7 @@ async function enforceBlockedAccountSession() {
 }
 
 function updateUserDisplay() {
-  const userDisplay = document.getElementById("user-display");
-  const currentUser = getCurrentUser();
-
-  if (userDisplay) {
-    userDisplay.textContent = currentUser ? "Account" : "Sign In";
-  }
-
-  document.querySelectorAll(".admin-nav-link").forEach(link => link.remove());
-
-  if (isAdminUser()) {
-    document.querySelectorAll(".top-menu").forEach(menu => {
-      const adminLink = document.createElement("a");
-      adminLink.href = "admin.html";
-      adminLink.className = "admin-nav-link";
-      adminLink.innerHTML = `<span class="admin-nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v5c0 4.6-3 8.4-7 10-4-1.6-7-5.4-7-10V6l7-3z"/></svg></span>Admin`;
-      menu.appendChild(adminLink);
-    });
-  }
+  renderDrawerAccountSection();
 }
 
 function calculateCartTotals() {
@@ -1158,7 +1141,7 @@ function renderPlants() {
 }
 
 function setupSidePanel() {
-  if (document.querySelector(".admin-page") || document.querySelector(".search-page") || document.getElementById("aqua-side-panel")) return;
+  if (document.querySelector(".admin-page") || document.getElementById("aqua-side-panel")) return;
 
   const categories = getCategoryList();
 
@@ -1172,14 +1155,17 @@ function setupSidePanel() {
   panel.className = "shop-drawer";
   panel.setAttribute("aria-hidden", "true");
   panel.innerHTML = `
+    <div class="shop-drawer-bubbles" aria-hidden="true">${Array.from({ length: 10 }).map(() => "<span></span>").join("")}</div>
     <div class="shop-drawer-head">
       <div class="shop-drawer-title">
         <img class="shop-drawer-logo" src="assets/plantovia-logo.png" alt="">
-        <strong>Shop menu</strong>
+        <strong>Menu</strong>
       </div>
       <button class="shop-drawer-close" type="button" aria-label="Close menu">&times;</button>
     </div>
     <div class="shop-drawer-body">
+      <section class="shop-drawer-section" id="drawer-account-section"></section>
+
       <section class="shop-drawer-section">
         <h3>Search plants</h3>
         <input id="side-panel-search" type="search" placeholder="Search by plant or tag">
@@ -1194,22 +1180,20 @@ function setupSidePanel() {
       </section>
 
       <section class="shop-drawer-section">
-        <h3>Contact</h3>
-        <a href="index.html#contact">Contact Plantovia</a>
-        <a href="delivery.html">Delivery info</a>
+        <h3>Shop</h3>
+        <a href="index.html#plant-grid">Catalogue</a>
+        <a href="cart.html">Cart</a>
       </section>
 
       <section class="shop-drawer-section">
-        <h3>Useful links</h3>
-        <a href="index.html#plant-grid">Catalogue</a>
-        <a href="search.html">Full search page</a>
-        <a href="cart.html">Cart</a>
-        <a href="payment.html">Payment</a>
+        <h3>Support</h3>
+        <a href="contact.html">Contact Us</a>
       </section>
     </div>
   `;
 
   document.body.appendChild(panel);
+  renderDrawerAccountSection();
 
   const triggers = [];
   document.querySelectorAll(".top-menu").forEach(menu => {
@@ -1290,7 +1274,12 @@ function setupSidePanel() {
     }
   });
 
-  panel.addEventListener("click", event => {
+  panel.addEventListener("click", async event => {
+    if (event.target.closest(".drawer-signout-btn")) {
+      await performGlobalSignOut();
+      return;
+    }
+
     const categoryButton = event.target.closest(".side-category");
     if (!categoryButton) return;
 
@@ -1302,6 +1291,39 @@ function setupSidePanel() {
     focusCatalogue();
     closePanel();
   });
+}
+
+function renderDrawerAccountSection() {
+  const section = document.getElementById("drawer-account-section");
+  if (!section) return;
+
+  const currentUser = getCurrentUser();
+
+  if (!currentUser) {
+    section.innerHTML = `
+      <h3>Account</h3>
+      <a href="account.html">Sign In / Create Account</a>
+    `;
+    return;
+  }
+
+  const admin = isAdminUser();
+
+  section.innerHTML = `
+    <h3>Account</h3>
+    <p class="drawer-account-email">Signed in as<br><strong>${escapeHtml(currentUser)}</strong></p>
+    <a href="purchase-history.html">Purchase History</a>
+    ${admin ? '<a href="admin.html" class="drawer-admin-link">Admin Dashboard</a>' : ""}
+    <button class="drawer-signout-btn" type="button">Sign Out</button>
+  `;
+}
+
+async function performGlobalSignOut() {
+  const client = getSupabaseClient();
+  if (client) await client.auth.signOut();
+  localStorage.removeItem("currentUser");
+  localStorage.removeItem("adminSession");
+  window.location.reload();
 }
 
 function introLeafMarkup() {
@@ -1919,6 +1941,194 @@ function setupAccountPage() {
   document.addEventListener("plantovia:password-recovery", enterPasswordRecoveryView);
   if (passwordRecoveryPending || inPasswordRecovery) enterPasswordRecoveryView();
 
+  async function loadSupabaseAccount() {
+    updateAccountView();
+
+    if (!client) return;
+
+    const { data } = await client.auth.getUser();
+
+    if (data && data.user) {
+      localStorage.setItem("currentUser", data.user.email);
+      localStorage.removeItem("adminSession");
+    } else if (getCurrentUser()) {
+      localStorage.removeItem("currentUser");
+    }
+
+    updateUserDisplay();
+    updateAccountView();
+  }
+
+  signupBtn.addEventListener("click", async () => {
+    const username = document.getElementById("signup-username").value.trim();
+    const password = document.getElementById("signup-password").value.trim();
+
+    if (!username || !password) {
+      accountMessage.textContent = "Enter a username and password.";
+      return;
+    }
+
+    if (!client) {
+      accountMessage.textContent = "Online accounts are temporarily unavailable. Please try again later.";
+      return;
+    }
+
+    if (!username.includes("@")) {
+      accountMessage.textContent = "Use an email address for online accounts.";
+      return;
+    }
+
+    if (password.length < 8) {
+      accountMessage.textContent = "Use a password with at least 8 characters.";
+      return;
+    }
+
+    const { data, error } = await client.auth.signUp({
+      email: username,
+      password,
+      options: { emailRedirectTo: `${window.location.origin}/confirmed.html` }
+    });
+
+    if (error) {
+      accountMessage.textContent = error.message;
+      return;
+    }
+
+    if (data.user && !data.session) {
+      accountMessage.textContent = "Account created. Check your inbox and confirm your email, then sign in below.";
+      updateAccountView();
+      return;
+    }
+
+    localStorage.setItem("currentUser", data.user ? data.user.email : username);
+    localStorage.setItem("lastSignInEmail", data.user ? data.user.email : username);
+    localStorage.removeItem("adminSession");
+    accountMessage.textContent = "Account created.";
+    updateUserDisplay();
+    updateAccountView();
+  });
+
+  signinBtn.addEventListener("click", async () => {
+    const username = document.getElementById("signin-username").value.trim();
+    const password = document.getElementById("signin-password").value.trim();
+
+    if (!client) {
+      accountMessage.textContent = "Online accounts are temporarily unavailable. Please try again later.";
+      return;
+    }
+
+    const { data, error } = await client.auth.signInWithPassword({ email: username, password });
+
+    if (error) {
+      accountMessage.textContent = error.message;
+      return;
+    }
+
+    if (await getBlockedAccountStatus(data.user.id)) {
+      await client.auth.signOut();
+      localStorage.removeItem("currentUser");
+      accountMessage.textContent = "This Plantovia account has been blocked. Contact plantovia.shop@gmail.com for help.";
+      updateAccountView();
+      return;
+    }
+
+    localStorage.setItem("currentUser", data.user.email);
+    localStorage.setItem("lastSignInEmail", data.user.email);
+    localStorage.removeItem("adminSession");
+    accountMessage.innerHTML = isAdminUser(data.user.email)
+      ? `Signed in as admin. <a href="admin.html">Open admin panel</a>.`
+      : "Signed in.";
+    updateUserDisplay();
+    updateAccountView();
+  });
+
+  document.addEventListener("click", async event => {
+    const signoutButton = event.target.closest("#customer-signout");
+    if (!signoutButton) return;
+
+    if (client) await client.auth.signOut();
+    localStorage.removeItem("currentUser");
+    localStorage.removeItem("adminSession");
+    accountMessage.textContent = "Signed out.";
+    updateUserDisplay();
+    updateAccountView();
+  });
+
+  if (forgotBtn) {
+    forgotBtn.addEventListener("click", async () => {
+      const email = document.getElementById("signin-username").value.trim();
+
+      if (!email) {
+        accountMessage.textContent = "Enter your email address above, then choose \"Forgot your password?\" again.";
+        document.getElementById("signin-username").focus();
+        return;
+      }
+
+      if (!client) {
+        accountMessage.textContent = "Online accounts are temporarily unavailable. Please try again later.";
+        return;
+      }
+
+      forgotBtn.disabled = true;
+      const { error } = await client.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/account.html`
+      });
+      forgotBtn.disabled = false;
+
+      accountMessage.textContent = error
+        ? error.message
+        : "If that email has a Plantovia account, a password reset link has been sent.";
+    });
+  }
+
+  if (resetBtn) {
+    resetBtn.addEventListener("click", async () => {
+      const newPassword = document.getElementById("reset-password-new").value.trim();
+
+      if (newPassword.length < 8) {
+        accountMessage.textContent = "Use a password with at least 8 characters.";
+        return;
+      }
+
+      if (!client) {
+        accountMessage.textContent = "Online accounts are temporarily unavailable. Please try again later.";
+        return;
+      }
+
+      resetBtn.disabled = true;
+      resetBtn.textContent = "Updating...";
+      const { data, error } = await client.auth.updateUser({ password: newPassword });
+      resetBtn.disabled = false;
+      resetBtn.textContent = "Update Password";
+
+      if (error) {
+        accountMessage.textContent = error.message;
+        return;
+      }
+
+      if (data.user) {
+        localStorage.setItem("currentUser", data.user.email);
+        localStorage.removeItem("adminSession");
+      }
+
+      passwordRecoveryPending = false;
+      inPasswordRecovery = false;
+      window.history.replaceState(null, "", window.location.pathname);
+      accountMessage.textContent = "Password updated. You're signed in.";
+      updateUserDisplay();
+      updateAccountView();
+    });
+  }
+
+  loadSupabaseAccount();
+}
+
+function setupPurchaseHistoryPage() {
+  const historyPanel = document.getElementById("purchase-history");
+  if (!historyPanel) return;
+
+  const client = getSupabaseClient();
+
   let customerOrders = [];
   let historyFiltersOpen = false;
   const historyFilters = { minPrice: "", maxPrice: "", startDate: "", endDate: "" };
@@ -2023,10 +2233,8 @@ function setupAccountPage() {
   }
 
   function renderHistoryList() {
-    if (!historyPanel) return;
-
     if (!getCurrentUser()) {
-      historyPanel.innerHTML = `<p class="empty-state">Sign in to view your purchase history.</p>`;
+      historyPanel.innerHTML = `<p class="empty-state">Sign in to view your purchase history. <a href="account.html">Sign in</a></p>`;
       return;
     }
 
@@ -2048,13 +2256,11 @@ function setupAccountPage() {
   }
 
   async function loadPurchaseHistory() {
-    if (!historyPanel) return;
-
     const currentUser = getCurrentUser();
 
     if (!currentUser) {
       customerOrders = [];
-      historyPanel.innerHTML = `<p class="empty-state">Sign in to view your purchase history.</p>`;
+      historyPanel.innerHTML = `<p class="empty-state">Sign in to view your purchase history. <a href="account.html">Sign in</a></p>`;
       return;
     }
 
@@ -2063,7 +2269,7 @@ function setupAccountPage() {
 
       if (!userData || !userData.user) {
         customerOrders = [];
-        historyPanel.innerHTML = `<p class="empty-state">Sign in to view your purchase history.</p>`;
+        historyPanel.innerHTML = `<p class="empty-state">Sign in to view your purchase history. <a href="account.html">Sign in</a></p>`;
         return;
       }
 
@@ -2089,224 +2295,36 @@ function setupAccountPage() {
     renderHistoryList();
   }
 
-  async function loadSupabaseAccount() {
-    updateAccountView();
+  historyPanel.addEventListener("input", event => {
+    const fields = { "history-filter-min": "minPrice", "history-filter-max": "maxPrice" };
+    const key = fields[event.target.id];
+    if (!key) return;
 
-    if (!client) {
-      loadPurchaseHistory();
-      return;
+    historyFilters[key] = event.target.value;
+    const id = event.target.id;
+    renderHistoryList();
+
+    const input = document.getElementById(id);
+    if (input) {
+      input.focus();
+      if (input.setSelectionRange) input.setSelectionRange(input.value.length, input.value.length);
     }
-
-    const { data } = await client.auth.getUser();
-
-    if (data && data.user) {
-      localStorage.setItem("currentUser", data.user.email);
-      localStorage.removeItem("adminSession");
-    } else if (getCurrentUser()) {
-      localStorage.removeItem("currentUser");
-    }
-
-    updateUserDisplay();
-    updateAccountView();
-    loadPurchaseHistory();
-  }
-
-  signupBtn.addEventListener("click", async () => {
-    const username = document.getElementById("signup-username").value.trim();
-    const password = document.getElementById("signup-password").value.trim();
-
-    if (!username || !password) {
-      accountMessage.textContent = "Enter a username and password.";
-      return;
-    }
-
-    if (!client) {
-      accountMessage.textContent = "Online accounts are temporarily unavailable. Please try again later.";
-      return;
-    }
-
-    if (!username.includes("@")) {
-      accountMessage.textContent = "Use an email address for online accounts.";
-      return;
-    }
-
-    if (password.length < 8) {
-      accountMessage.textContent = "Use a password with at least 8 characters.";
-      return;
-    }
-
-    const { data, error } = await client.auth.signUp({
-      email: username,
-      password,
-      options: { emailRedirectTo: `${window.location.origin}/confirmed.html` }
-    });
-
-    if (error) {
-      accountMessage.textContent = error.message;
-      return;
-    }
-
-    if (data.user && !data.session) {
-      accountMessage.textContent = "Account created. Check your inbox and confirm your email, then sign in below.";
-      updateAccountView();
-      return;
-    }
-
-    localStorage.setItem("currentUser", data.user ? data.user.email : username);
-    localStorage.setItem("lastSignInEmail", data.user ? data.user.email : username);
-    localStorage.removeItem("adminSession");
-    accountMessage.textContent = "Account created.";
-    updateUserDisplay();
-    updateAccountView();
-    loadPurchaseHistory();
   });
 
-  signinBtn.addEventListener("click", async () => {
-    const username = document.getElementById("signin-username").value.trim();
-    const password = document.getElementById("signin-password").value.trim();
-
-    if (!client) {
-      accountMessage.textContent = "Online accounts are temporarily unavailable. Please try again later.";
-      return;
-    }
-
-    const { data, error } = await client.auth.signInWithPassword({ email: username, password });
-
-    if (error) {
-      accountMessage.textContent = error.message;
-      return;
-    }
-
-    if (await getBlockedAccountStatus(data.user.id)) {
-      await client.auth.signOut();
-      localStorage.removeItem("currentUser");
-      accountMessage.textContent = "This Plantovia account has been blocked. Contact plantovia.shop@gmail.com for help.";
-      updateAccountView();
-      return;
-    }
-
-    localStorage.setItem("currentUser", data.user.email);
-    localStorage.setItem("lastSignInEmail", data.user.email);
-    localStorage.removeItem("adminSession");
-    accountMessage.innerHTML = isAdminUser(data.user.email)
-      ? `Signed in as admin. <a href="admin.html">Open admin panel</a>.`
-      : "Signed in.";
-    updateUserDisplay();
-    updateAccountView();
-    loadPurchaseHistory();
-  });
-
-  document.addEventListener("click", async event => {
-    const signoutButton = event.target.closest("#customer-signout");
-    if (!signoutButton) return;
-
-    if (client) await client.auth.signOut();
-    localStorage.removeItem("currentUser");
-    localStorage.removeItem("adminSession");
-    accountMessage.textContent = "Signed out.";
-    updateUserDisplay();
-    updateAccountView();
-    loadPurchaseHistory();
-  });
-
-  if (forgotBtn) {
-    forgotBtn.addEventListener("click", async () => {
-      const email = document.getElementById("signin-username").value.trim();
-
-      if (!email) {
-        accountMessage.textContent = "Enter your email address above, then choose \"Forgot your password?\" again.";
-        document.getElementById("signin-username").focus();
-        return;
-      }
-
-      if (!client) {
-        accountMessage.textContent = "Online accounts are temporarily unavailable. Please try again later.";
-        return;
-      }
-
-      forgotBtn.disabled = true;
-      const { error } = await client.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/account.html`
-      });
-      forgotBtn.disabled = false;
-
-      accountMessage.textContent = error
-        ? error.message
-        : "If that email has a Plantovia account, a password reset link has been sent.";
-    });
-  }
-
-  if (resetBtn) {
-    resetBtn.addEventListener("click", async () => {
-      const newPassword = document.getElementById("reset-password-new").value.trim();
-
-      if (newPassword.length < 8) {
-        accountMessage.textContent = "Use a password with at least 8 characters.";
-        return;
-      }
-
-      if (!client) {
-        accountMessage.textContent = "Online accounts are temporarily unavailable. Please try again later.";
-        return;
-      }
-
-      resetBtn.disabled = true;
-      resetBtn.textContent = "Updating...";
-      const { data, error } = await client.auth.updateUser({ password: newPassword });
-      resetBtn.disabled = false;
-      resetBtn.textContent = "Update Password";
-
-      if (error) {
-        accountMessage.textContent = error.message;
-        return;
-      }
-
-      if (data.user) {
-        localStorage.setItem("currentUser", data.user.email);
-        localStorage.removeItem("adminSession");
-      }
-
-      passwordRecoveryPending = false;
-      inPasswordRecovery = false;
-      window.history.replaceState(null, "", window.location.pathname);
-      accountMessage.textContent = "Password updated. You're signed in.";
-      updateUserDisplay();
-      updateAccountView();
-      loadPurchaseHistory();
-    });
-  }
-
-  if (historyPanel) {
-    historyPanel.addEventListener("input", event => {
-      const fields = { "history-filter-min": "minPrice", "history-filter-max": "maxPrice" };
-      const key = fields[event.target.id];
-      if (!key) return;
-
-      historyFilters[key] = event.target.value;
-      const id = event.target.id;
+  historyPanel.addEventListener("click", async event => {
+    if (event.target.closest(".history-filter-toggle")) {
+      historyFiltersOpen = !historyFiltersOpen;
       renderHistoryList();
+      return;
+    }
 
-      const input = document.getElementById(id);
-      if (input) {
-        input.focus();
-        if (input.setSelectionRange) input.setSelectionRange(input.value.length, input.value.length);
-      }
-    });
-
-    historyPanel.addEventListener("click", async event => {
-      if (event.target.closest(".history-filter-toggle")) {
-        historyFiltersOpen = !historyFiltersOpen;
-        renderHistoryList();
-        return;
-      }
-
-      const monthButton = event.target.closest(".admin-calendar-month");
-      if (monthButton) {
-        historyCalendarMonth = new Date(
-          historyCalendarMonth.getFullYear(),
-          historyCalendarMonth.getMonth() + (monthButton.dataset.direction === "next" ? 1 : -1),
-          1
-        );
+    const monthButton = event.target.closest(".admin-calendar-month");
+    if (monthButton) {
+      historyCalendarMonth = new Date(
+        historyCalendarMonth.getFullYear(),
+        historyCalendarMonth.getMonth() + (monthButton.dataset.direction === "next" ? 1 : -1),
+        1
+      );
         renderHistoryList();
         return;
       }
@@ -2361,9 +2379,8 @@ function setupAccountPage() {
         confirmButton.textContent = error.message;
       }
     });
-  }
 
-  loadSupabaseAccount();
+  loadPurchaseHistory();
 }
 
 function fileToDataUrl(file) {
@@ -3068,6 +3085,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   setupPaymentPage();
   setupSuccessPage();
   setupAccountPage();
+  setupPurchaseHistoryPage();
   setupSearchPage();
   setupContactForm();
   setupAdminPage();
