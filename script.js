@@ -1169,6 +1169,7 @@ function setupSidePanel() {
       <section class="shop-drawer-section">
         <h3>Search plants</h3>
         <input id="side-panel-search" type="search" placeholder="Search by plant or tag">
+        <a href="search.html">Open search page</a>
       </section>
 
       <section class="shop-drawer-section">
@@ -1698,11 +1699,40 @@ function setupSearchPage() {
   if (!searchInput || !resultsGrid) return;
   document.body.classList.add("search-body");
 
+  const categoryList = document.getElementById("search-category-list");
+  const priceMinInput = document.getElementById("search-price-min");
+  const priceMaxInput = document.getElementById("search-price-max");
+
+  let activeSearchCategory = "all";
+
+  if (categoryList) {
+    const categories = getCategoryList();
+    categoryList.innerHTML = `
+      <button class="side-category active" type="button" data-category="all">All plants</button>
+      ${categories.map(category => `<button class="side-category" type="button" data-category="${escapeHtml(category)}">${escapeHtml(category)}</button>`).join("")}
+    `;
+  }
+
   const suggestions = document.createElement("div");
   suggestions.id = "search-suggestions";
   suggestions.className = "search-suggestions";
   suggestions.setAttribute("aria-label", "Suggested plants");
   searchInput.insertAdjacentElement("afterend", suggestions);
+
+  function matchesFilters(plant) {
+    if (activeSearchCategory !== "all") {
+      const categories = (plant.categories || []).map(category => category.toLowerCase());
+      if (!categories.includes(activeSearchCategory.toLowerCase())) return false;
+    }
+
+    const min = priceMinInput && priceMinInput.value !== "" ? Number(priceMinInput.value) : null;
+    const max = priceMaxInput && priceMaxInput.value !== "" ? Number(priceMaxInput.value) : null;
+
+    if (min !== null && Number.isFinite(min) && plant.price < min) return false;
+    if (max !== null && Number.isFinite(max) && plant.price > max) return false;
+
+    return true;
+  }
 
   function getSearchRelevance(plant, normalizedSearch) {
     if (!normalizedSearch) return 0;
@@ -1737,7 +1767,7 @@ function setupSearchPage() {
         originalIndex,
         relevance: getSearchRelevance(plant, normalizedSearch)
       }))
-      .filter(item => !normalizedSearch || item.relevance > 0)
+      .filter(item => (!normalizedSearch || item.relevance > 0) && matchesFilters(item.plant))
       .sort((first, second) =>
         second.relevance - first.relevance ||
         first.originalIndex - second.originalIndex
@@ -1745,7 +1775,7 @@ function setupSearchPage() {
       .map(item => item.plant);
 
     if (!filteredPlants.length) {
-      resultsGrid.innerHTML = `<p class="empty-state">No matching plants found.</p>`;
+      resultsGrid.innerHTML = `<p class="empty-state">No plants match these filters.</p>`;
       return;
     }
 
@@ -1824,6 +1854,27 @@ function setupSearchPage() {
     showResults(searchInput.value);
     searchInput.focus();
   });
+
+  if (categoryList) {
+    categoryList.addEventListener("click", event => {
+      const button = event.target.closest(".side-category");
+      if (!button) return;
+
+      activeSearchCategory = button.dataset.category || "all";
+      categoryList.querySelectorAll(".side-category").forEach(chip => {
+        chip.classList.toggle("active", chip === button);
+      });
+      showResults(searchInput.value);
+    });
+  }
+
+  if (priceMinInput) {
+    priceMinInput.addEventListener("input", () => showResults(searchInput.value));
+  }
+
+  if (priceMaxInput) {
+    priceMaxInput.addEventListener("input", () => showResults(searchInput.value));
+  }
 }
 
 function setupContactForm() {

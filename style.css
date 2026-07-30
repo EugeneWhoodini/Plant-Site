@@ -1315,6 +1315,58 @@ textarea:focus-visible {
   background: var(--brand-softer);
 }
 
+.search-page-filters {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin: 16px 0 6px;
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface-soft);
+}
+
+.search-filter-categories {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.search-filter-price {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+}
+
+.search-filter-price label {
+  display: flex;
+  flex: 1 1 160px;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.search-filter-price input {
+  min-height: 44px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: white;
+  font-weight: 700;
+  color: var(--ink);
+  transition: border-color 0.2s var(--ease), box-shadow 0.2s var(--ease);
+}
+
+.search-filter-price input:focus {
+  outline: none;
+  box-shadow: var(--ring);
+  border-color: var(--brand);
+}
+
 .form-page label {
   display: block;
   margin: 16px 0 7px;
@@ -3411,7 +3463,8 @@ body.drawer-open {
   }
 
   .top-menu {
-    justify-content: flex-start;
+    width: 100%;
+    justify-content: flex-end;
   }
 
   .hero {
@@ -3531,18 +3584,9 @@ body.drawer-open {
     display: flex;
     flex: 1 1 auto;
     flex-wrap: nowrap;
-    justify-content: flex-start;
+    justify-content: flex-end;
     width: auto;
     min-width: 0;
-    overflow-x: auto;
-    overscroll-behavior-inline: contain;
-    scrollbar-width: none;
-    mask-image: linear-gradient(90deg, black 90%, transparent);
-    -webkit-mask-image: linear-gradient(90deg, black 90%, transparent);
-  }
-
-  .top-menu::-webkit-scrollbar {
-    display: none;
   }
 
   .top-menu a,
@@ -3756,21 +3800,12 @@ body.drawer-open {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
+  html {
     scroll-behavior: auto !important;
-    transition-duration: 0.01ms !important;
-    animation-duration: 0.01ms !important;
-    animation-delay: 0s !important;
   }
 
   [data-reveal] {
     opacity: 1;
     transform: none;
-  }
-
-  .hero-bubbles {
-    display: none;
   }
 }
