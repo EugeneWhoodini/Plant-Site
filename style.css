@@ -2470,11 +2470,6 @@ textarea {
   overflow-x: hidden;
 }
 
-.search-body .shop-drawer,
-.search-body .shop-drawer-scrim {
-  display: none !important;
-}
-
 body.drawer-open {
   overflow: hidden;
 }
@@ -2536,11 +2531,11 @@ body.drawer-open {
   position: fixed;
   inset: 0;
   z-index: 1090;
-  background: rgba(4, 14, 11, 0.5);
-  backdrop-filter: blur(2px);
+  background: rgba(4, 14, 11, 0.58);
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.3s var(--ease);
+  will-change: opacity;
 }
 
 .shop-drawer-scrim.open {
@@ -2562,6 +2557,7 @@ body.drawer-open {
   box-shadow: var(--shadow-lg);
   transform: translateX(-100%);
   transition: transform 0.34s var(--ease);
+  will-change: transform;
 }
 
 .shop-drawer.open {
@@ -2584,6 +2580,11 @@ body.drawer-open {
   background: radial-gradient(circle at 32% 28%, rgba(255, 255, 255, 0.85), rgba(190, 240, 226, 0.14) 70%, transparent 76%);
   opacity: 0;
   animation: floatUp linear infinite;
+  animation-play-state: paused;
+}
+
+.shop-drawer.open .shop-drawer-bubbles span {
+  animation-play-state: running;
 }
 
 .shop-drawer-bubbles span:nth-child(1) { left: 6%;  width: 8px;  height: 8px;  animation-duration: 5.2s; animation-delay: 0.1s; }

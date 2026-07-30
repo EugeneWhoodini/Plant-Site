@@ -1,3 +1,19 @@
+function safeJsonParse(key, fallback = null) {
+  try {
+    const raw = localStorage.getItem(key);
+    if (raw === null) return fallback;
+    return JSON.parse(raw);
+  } catch (error) {
+    console.error(`Plantovia: corrupted localStorage key "${key}", resetting it.`, error);
+    try {
+      localStorage.removeItem(key);
+    } catch (removeError) {
+      console.error(`Plantovia: could not clear localStorage key "${key}".`, removeError);
+    }
+    return fallback;
+  }
+}
+
 function sanitizeCartItems(items) {
   if (!Array.isArray(items)) return [];
 
@@ -10,7 +26,7 @@ function sanitizeCartItems(items) {
     });
 }
 
-let cart = sanitizeCartItems(JSON.parse(localStorage.getItem("cart")) || []);
+let cart = sanitizeCartItems(safeJsonParse("cart", []));
 localStorage.setItem("cart", JSON.stringify(cart));
 
 const TAX_RATE = 0.13;
@@ -168,7 +184,7 @@ function getPlants() {
   if (runtimePlants) return runtimePlants;
   if (typeof plants === "undefined") return [];
 
-  const storedPlants = JSON.parse(localStorage.getItem(PLANT_STORAGE_KEY)) || null;
+  const storedPlants = safeJsonParse(PLANT_STORAGE_KEY, null);
   if (storedPlants && Array.isArray(storedPlants)) return storedPlants.map(normalizePlant);
 
   return plants.map(normalizePlant);
@@ -182,7 +198,7 @@ function savePlants(nextPlants) {
 function getCategoryList() {
   if (runtimeCategories) return runtimeCategories;
 
-  const storedCategories = JSON.parse(localStorage.getItem(CATEGORY_STORAGE_KEY)) || null;
+  const storedCategories = safeJsonParse(CATEGORY_STORAGE_KEY, null);
   if (storedCategories && Array.isArray(storedCategories) && storedCategories.length) {
     runtimeCategories = uniqueValues(storedCategories);
     return runtimeCategories;
@@ -201,7 +217,7 @@ function saveCategories(categories) {
 function getFeaturedPlantIds() {
   if (runtimeFeaturedIds) return runtimeFeaturedIds;
 
-  const storedIds = JSON.parse(localStorage.getItem(FEATURED_STORAGE_KEY)) || null;
+  const storedIds = safeJsonParse(FEATURED_STORAGE_KEY, null);
   if (storedIds && Array.isArray(storedIds) && storedIds.length) return storedIds;
   return getPlants().slice(0, 3).map(plant => plant.id);
 }
@@ -214,7 +230,7 @@ function saveFeaturedPlantIds(ids) {
 function getSiteSettings() {
   if (runtimeSiteSettings) return runtimeSiteSettings;
 
-  const storedSettings = JSON.parse(localStorage.getItem(SITE_SETTINGS_STORAGE_KEY)) || null;
+  const storedSettings = safeJsonParse(SITE_SETTINGS_STORAGE_KEY, null);
   runtimeSiteSettings = {
     ...DEFAULT_SITE_SETTINGS,
     ...(storedSettings || {})
@@ -556,7 +572,7 @@ function getCurrentUser() {
 }
 
 function getLocalPurchaseHistory() {
-  return JSON.parse(localStorage.getItem(PURCHASE_HISTORY_STORAGE_KEY)) || {};
+  return safeJsonParse(PURCHASE_HISTORY_STORAGE_KEY, {});
 }
 
 function saveLocalPurchaseHistory(history) {
@@ -1600,7 +1616,7 @@ function setupPaymentPage() {
   }
 
   placeOrderBtn.addEventListener("click", async () => {
-    const deliveryInfo = JSON.parse(localStorage.getItem("deliveryInfo")) || null;
+    const deliveryInfo = safeJsonParse("deliveryInfo", null);
 
     if (cart.length === 0) {
       message.textContent = "Your cart is empty.";
@@ -1647,7 +1663,7 @@ function setupSuccessPage() {
   const orderNumber = document.getElementById("success-order-number");
   if (!orderNumber) return;
 
-  const order = JSON.parse(localStorage.getItem("lastOrder") || "null");
+  const order = safeJsonParse("lastOrder", null);
   const total = document.getElementById("success-order-total");
   const receiptStatus = document.getElementById("success-receipt-status");
 
@@ -3114,6 +3130,14 @@ async function safeRunAsync(label, fn) {
 }
 
 document.addEventListener("DOMContentLoaded", async () => {
+  // Failsafe: page content must never stay permanently invisible just because
+  // [data-reveal] elements never received their .is-visible class. This runs
+  // independently of everything below, so even an unexpected failure elsewhere
+  // can't leave the page looking blank.
+  setTimeout(() => {
+    document.querySelectorAll("[data-reveal]:not(.is-visible)").forEach(el => el.classList.add("is-visible"));
+  }, 2000);
+
   safeRun("setupIntroAnimation", setupIntroAnimation);
   await safeRunAsync("ensureBackendDataLoaded", ensureBackendDataLoaded);
   await safeRunAsync("enforceBlockedAccountSession", enforceBlockedAccountSession);
