@@ -1167,9 +1167,10 @@ function setupSidePanel() {
       <section class="shop-drawer-section" id="drawer-account-section"></section>
 
       <section class="shop-drawer-section">
-        <h3>Search plants</h3>
-        <input id="side-panel-search" type="search" placeholder="Search by plant or tag">
-        <a href="search.html">Open search page</a>
+        <a href="search.html" class="drawer-search-btn">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></svg>
+          Search Plants
+        </a>
       </section>
 
       <section class="shop-drawer-section">
@@ -1209,7 +1210,6 @@ function setupSidePanel() {
     triggers.push(trigger);
   });
 
-  const search = panel.querySelector("#side-panel-search");
   const closeBtn = panel.querySelector(".shop-drawer-close");
 
   function openPanel() {
@@ -1240,39 +1240,12 @@ function setupSidePanel() {
     }
   }
 
-  function runSidePanelSearch() {
-    const query = search.value.trim();
-    const searchPageInput = document.getElementById("search-input");
-
-    if (searchPageInput) {
-      searchPageInput.value = query;
-      searchPageInput.dispatchEvent(new Event("input", { bubbles: true }));
-      return;
-    }
-
-    if (document.getElementById("plant-grid")) {
-      activeCatalogueSearch = query;
-      renderPlants();
-      focusCatalogue();
-    }
-  }
-
   triggers.forEach(trigger => trigger.addEventListener("click", togglePanel));
   closeBtn.addEventListener("click", closePanel);
   scrim.addEventListener("click", closePanel);
 
   document.addEventListener("keydown", event => {
     if (event.key === "Escape" && panel.classList.contains("open")) closePanel();
-  });
-
-  search.addEventListener("input", () => {
-    runSidePanelSearch();
-  });
-
-  search.addEventListener("keydown", event => {
-    if (event.key === "Enter") {
-      window.location.href = `search.html?q=${encodeURIComponent(search.value.trim())}`;
-    }
   });
 
   panel.addEventListener("click", async event => {
@@ -3124,26 +3097,42 @@ function setupAdminPage() {
   startAdmin();
 }
 
+function safeRun(label, fn) {
+  try {
+    fn();
+  } catch (error) {
+    console.error(`Plantovia: ${label} failed`, error);
+  }
+}
+
+async function safeRunAsync(label, fn) {
+  try {
+    await fn();
+  } catch (error) {
+    console.error(`Plantovia: ${label} failed`, error);
+  }
+}
+
 document.addEventListener("DOMContentLoaded", async () => {
-  setupIntroAnimation();
-  await ensureBackendDataLoaded();
-  await enforceBlockedAccountSession();
-  setupSidePanel();
-  renderPlants();
-  setupSlider();
-  setupCartPage();
-  setupDeliveryPage();
-  setupPaymentPage();
-  setupSuccessPage();
-  setupAccountPage();
-  setupPurchaseHistoryPage();
-  setupSearchPage();
-  setupContactForm();
-  setupAdminPage();
-  updateShippingStatement();
-  updateUserDisplay();
-  updateHeaderCart();
-  setupHeaderAutoHide();
-  setupScrollEffects();
-  setupBackToTop();
+  safeRun("setupIntroAnimation", setupIntroAnimation);
+  await safeRunAsync("ensureBackendDataLoaded", ensureBackendDataLoaded);
+  await safeRunAsync("enforceBlockedAccountSession", enforceBlockedAccountSession);
+  safeRun("setupSidePanel", setupSidePanel);
+  safeRun("renderPlants", renderPlants);
+  safeRun("setupSlider", setupSlider);
+  safeRun("setupCartPage", setupCartPage);
+  safeRun("setupDeliveryPage", setupDeliveryPage);
+  safeRun("setupPaymentPage", setupPaymentPage);
+  safeRun("setupSuccessPage", setupSuccessPage);
+  safeRun("setupAccountPage", setupAccountPage);
+  safeRun("setupPurchaseHistoryPage", setupPurchaseHistoryPage);
+  safeRun("setupSearchPage", setupSearchPage);
+  safeRun("setupContactForm", setupContactForm);
+  safeRun("setupAdminPage", setupAdminPage);
+  safeRun("updateShippingStatement", updateShippingStatement);
+  safeRun("updateUserDisplay", updateUserDisplay);
+  safeRun("updateHeaderCart", updateHeaderCart);
+  safeRun("setupHeaderAutoHide", setupHeaderAutoHide);
+  safeRun("setupScrollEffects", setupScrollEffects);
+  safeRun("setupBackToTop", setupBackToTop);
 });
