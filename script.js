@@ -37,6 +37,7 @@ const FEATURED_STORAGE_KEY = "featuredPlantIds";
 const CATEGORY_STORAGE_KEY = "plantCategories";
 const SITE_SETTINGS_STORAGE_KEY = "siteSettings";
 const PURCHASE_HISTORY_STORAGE_KEY = "purchaseHistory";
+const REQUESTED_STOCK_STORAGE_KEY = "requestedStockPlantIds";
 const SUPABASE_PLACEHOLDER_URL = "PASTE_SUPABASE_PROJECT_URL_HERE";
 const SUPABASE_PLACEHOLDER_KEY = "PASTE_SUPABASE_ANON_KEY_HERE";
 const DEFAULT_SITE_SETTINGS = {
@@ -571,6 +572,33 @@ function getCurrentUser() {
   return localStorage.getItem("currentUser");
 }
 
+function getRequestedStockPlantIds() {
+  return safeJsonParse(REQUESTED_STOCK_STORAGE_KEY, []);
+}
+
+function markPlantStockRequested(plantId) {
+  const requested = getRequestedStockPlantIds();
+  if (!requested.includes(plantId)) {
+    requested.push(plantId);
+    localStorage.setItem(REQUESTED_STOCK_STORAGE_KEY, JSON.stringify(requested));
+  }
+}
+
+async function requestPlantStock(plantId) {
+  const client = getSupabaseClient();
+  if (!client) throw new Error("Stock requests are temporarily unavailable. Please contact Plantovia.");
+
+  const { data: userData } = await client.auth.getUser();
+  if (!userData?.user) {
+    throw new Error("Please sign in to request a restock notification.");
+  }
+
+  const { error } = await client.rpc("request_plant_stock", { p_plant_id: plantId });
+  if (error) throw error;
+
+  markPlantStockRequested(plantId);
+}
+
 function getLocalPurchaseHistory() {
   return safeJsonParse(PURCHASE_HISTORY_STORAGE_KEY, {});
 }
@@ -895,6 +923,44 @@ function pickCalendarRangeDate(range, dateKey) {
   }
 }
 
+function requestStockButtonTemplate(plant) {
+  if (plant.status !== "low") return "";
+
+  const alreadyRequested = getRequestedStockPlantIds().includes(plant.id);
+  return `
+    <button class="request-stock-btn ${alreadyRequested ? "is-requested" : ""}" data-plant-id="${plant.id}" type="button" title="Let Plantovia know you want this plant restocked">
+      ${alreadyRequested
+        ? `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg> We'll notify you`
+        : `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg> Request Stock`}
+    </button>
+    <p class="request-stock-note">Out of stock — you can add this to your cart, but checkout is disabled until it's restocked. Tap above to let us know you want it.</p>
+  `;
+}
+
+function attachRequestStockHandler(button, plantId) {
+  if (!button || button.dataset.requestStockBound) return;
+  button.dataset.requestStockBound = "true";
+
+  button.addEventListener("click", async () => {
+    if (button.classList.contains("is-requested")) return;
+
+    const originalHtml = button.innerHTML;
+    button.disabled = true;
+    button.textContent = "Sending request...";
+
+    try {
+      await requestPlantStock(plantId);
+      button.classList.add("is-requested");
+      button.innerHTML = `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg> We'll notify you`;
+      button.disabled = false;
+    } catch (error) {
+      button.disabled = false;
+      button.innerHTML = originalHtml;
+      alert(error.message || "Could not send your stock request. Please try again.");
+    }
+  });
+}
+
 function plantCardTemplate(plant) {
   const image = getPlantImage(plant);
   const images = plant.images && plant.images.length ? plant.images : [image];
@@ -932,6 +998,7 @@ function plantCardTemplate(plant) {
         </div>
 
         <button class="add-to-cart">Add to Cart</button>
+        ${requestStockButtonTemplate(plant)}
       </div>
     </section>
   `;
@@ -1019,6 +1086,7 @@ function setupSlider() {
   const incBtn = document.getElementById("featured-increase");
   const decBtn = document.getElementById("featured-decrease");
   const addBtn = document.getElementById("featured-add-to-cart");
+  const requestStockContainer = document.getElementById("featured-request-stock");
 
   if (!track || !leftArrow || !rightArrow || !featuredName || !featuredPrice || !featuredDescription || !featuredRequirements || !qtyDisplay || !incBtn || !decBtn || !addBtn) return;
 
@@ -1055,6 +1123,11 @@ function setupSlider() {
     featuredCard.dataset.id = plant.id;
     quantity = 1;
     qtyDisplay.textContent = quantity;
+
+    if (requestStockContainer) {
+      requestStockContainer.innerHTML = requestStockButtonTemplate(plant);
+      attachRequestStockHandler(requestStockContainer.querySelector(".request-stock-btn"), plant.id);
+    }
   }
 
   function updateSlider() {
@@ -1101,6 +1174,7 @@ function setupPlantCards() {
     const increaseBtn = card.querySelector(".increase");
     const quantityText = card.querySelector(".quantity");
     const addToCartBtn = card.querySelector(".add-to-cart");
+    const requestStockBtn = card.querySelector(".request-stock-btn");
 
     if (!decreaseBtn || !increaseBtn || !quantityText || !addToCartBtn) return;
 
@@ -1131,6 +1205,10 @@ function setupPlantCards() {
       quantity = 1;
       quantityText.textContent = quantity;
     });
+
+    if (requestStockBtn) {
+      attachRequestStockHandler(requestStockBtn, card.dataset.id);
+    }
   });
 }
 
@@ -1452,9 +1530,22 @@ function setupCartPage() {
       return;
     }
 
+    const allPlants = getPlants();
+    const lowStockItems = cart.filter(item => allPlants.find(plant => plant.id === item.id)?.status === "low");
+
+    if (lowStockItems.length) {
+      cartItemsContainer.insertAdjacentHTML("beforeend", `
+        <p class="cart-low-stock-banner">
+          ${lowStockItems.length === 1 ? "One item" : `${lowStockItems.length} items`} in your cart ${lowStockItems.length === 1 ? "is" : "are"} out of stock and can't be checked out yet. Remove ${lowStockItems.length === 1 ? "it" : "them"} or request a restock notification below.
+        </p>
+      `);
+    }
+
     cart.forEach((item, index) => {
+      const plant = allPlants.find(candidate => candidate.id === item.id);
       const itemDiv = document.createElement("div");
       itemDiv.classList.add("cart-item");
+      if (plant?.status === "low") itemDiv.classList.add("cart-item-low-stock");
 
       itemDiv.innerHTML = `
         <img src="${item.image}" alt="${item.name}">
@@ -1463,6 +1554,10 @@ function setupCartPage() {
           <p>$${item.price.toFixed(2)} each</p>
           <p>Quantity: ${item.quantity}</p>
           <p><strong>Item total: $${(item.price * item.quantity).toFixed(2)}</strong></p>
+          ${plant?.status === "low" ? `
+            <p class="cart-low-stock-note">Out of stock — can't be purchased right now.</p>
+            ${requestStockButtonTemplate(plant)}
+          ` : ""}
           <div class="cart-remove-control">
             <button class="cart-quantity-decrease" data-index="${index}" aria-label="Decrease ${item.name} quantity">-</button>
             <span class="cart-quantity" data-index="${index}">${item.quantity}</span>
@@ -1477,6 +1572,9 @@ function setupCartPage() {
 
     updateCartPageTotals();
     setupRemoveButtons();
+    cartItemsContainer.querySelectorAll(".request-stock-btn").forEach(button => {
+      attachRequestStockHandler(button, button.dataset.plantId);
+    });
   }
 
   function setupRemoveButtons() {
@@ -1625,6 +1723,13 @@ function setupPaymentPage() {
 
     if (!deliveryInfo) {
       message.textContent = "Please add delivery details first.";
+      return;
+    }
+
+    const allPlants = getPlants();
+    const lowStockItems = cart.filter(item => allPlants.find(plant => plant.id === item.id)?.status === "low");
+    if (lowStockItems.length) {
+      message.innerHTML = `${lowStockItems.map(item => escapeHtml(item.name)).join(", ")} ${lowStockItems.length === 1 ? "is" : "are"} out of stock. Remove ${lowStockItems.length === 1 ? "it" : "them"} from your <a href="cart.html">cart</a> before checking out.`;
       return;
     }
 
@@ -3136,9 +3241,14 @@ document.addEventListener("DOMContentLoaded", async () => {
   // can't leave the page looking blank.
   setTimeout(() => {
     document.querySelectorAll("[data-reveal]:not(.is-visible)").forEach(el => el.classList.add("is-visible"));
-  }, 2000);
+  }, 600);
 
   safeRun("setupIntroAnimation", setupIntroAnimation);
+  // Reveal is purely visual and only ever targets static wrapper elements already
+  // in the HTML, so it must not wait on network-dependent backend calls below —
+  // otherwise a slow mobile connection leaves the page blank until data arrives.
+  safeRun("setupScrollEffects", setupScrollEffects);
+  safeRun("setupBackToTop", setupBackToTop);
   await safeRunAsync("ensureBackendDataLoaded", ensureBackendDataLoaded);
   await safeRunAsync("enforceBlockedAccountSession", enforceBlockedAccountSession);
   safeRun("setupSidePanel", setupSidePanel);
@@ -3157,6 +3267,4 @@ document.addEventListener("DOMContentLoaded", async () => {
   safeRun("updateUserDisplay", updateUserDisplay);
   safeRun("updateHeaderCart", updateHeaderCart);
   safeRun("setupHeaderAutoHide", setupHeaderAutoHide);
-  safeRun("setupScrollEffects", setupScrollEffects);
-  safeRun("setupBackToTop", setupBackToTop);
 });

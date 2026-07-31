@@ -48,6 +48,12 @@ document.addEventListener("DOMContentLoaded", async () => {
   detailDescription.insertAdjacentHTML("beforebegin", `<span class="stock-badge ${selectedPlant.status === "low" ? "low-stock" : "good-stock"}">${getStatusLabel(selectedPlant.status)}</span>`);
   detailRequirements.innerHTML = selectedPlant.requirements.map(requirement => `<li>${requirement}</li>`).join("");
 
+  const requestStockContainer = document.getElementById("detail-request-stock");
+  if (requestStockContainer) {
+    requestStockContainer.innerHTML = requestStockButtonTemplate(selectedPlant);
+    attachRequestStockHandler(requestStockContainer.querySelector(".request-stock-btn"), selectedPlant.id);
+  }
+
   const plusButton = document.getElementById("detail-plus");
   const minusButton = document.getElementById("detail-minus");
   const quantityDisplay = document.getElementById("detail-quantity");

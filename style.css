@@ -1089,6 +1089,57 @@ textarea:focus-visible {
   color: #8a5a11;
 }
 
+.request-stock-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  margin-top: 8px;
+  padding: 10px 16px;
+  border: 1px solid var(--gold);
+  border-radius: var(--radius-sm);
+  background: var(--gold-soft);
+  color: #8a5a11;
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background 0.2s var(--ease), transform 0.15s var(--ease), box-shadow 0.2s var(--ease);
+}
+
+.request-stock-btn:hover {
+  background: var(--gold);
+  color: white;
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-xs);
+}
+
+.request-stock-btn:disabled {
+  cursor: default;
+  opacity: 0.75;
+  transform: none;
+}
+
+.request-stock-btn.is-requested {
+  background: var(--brand-softer);
+  border-color: rgba(31, 107, 74, 0.35);
+  color: #16603e;
+}
+
+.request-stock-btn.is-requested:hover {
+  background: var(--brand-softer);
+  color: #16603e;
+  transform: none;
+  box-shadow: none;
+}
+
+.request-stock-note {
+  margin: 6px 0 0;
+  color: var(--muted);
+  font-size: 12.5px;
+  line-height: 1.5;
+}
+
 .plant-card p {
   display: -webkit-box;
   overflow: hidden;
@@ -1206,6 +1257,34 @@ textarea:focus-visible {
 
 .cart-item:hover {
   background: rgba(31, 107, 74, 0.03);
+}
+
+.cart-low-stock-banner {
+  margin: 0 0 16px;
+  padding: 14px 16px;
+  border: 1px solid var(--gold);
+  border-radius: var(--radius-sm);
+  background: var(--gold-soft);
+  color: #8a5a11;
+  font-weight: 700;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.cart-item-low-stock {
+  background: rgba(200, 145, 47, 0.06);
+}
+
+.cart-low-stock-note {
+  margin: 0 0 4px;
+  color: #8a5a11;
+  font-weight: 700;
+  font-size: 13.5px;
+}
+
+.cart-item .request-stock-btn {
+  width: fit-content;
+  margin-bottom: 10px;
 }
 
 .cart-item img {
@@ -3389,6 +3468,24 @@ body.drawer-open {
 .dashboard-rank-main {
   flex: 1;
   min-width: 0;
+}
+
+.wanted-row {
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: white;
+  flex-wrap: wrap;
+}
+
+.wanted-row .clear-wanted-requests {
+  flex-shrink: 0;
+}
+
+.wanted-meta {
+  margin: 0;
+  color: var(--muted);
+  font-size: 12.5px;
 }
 
 .dashboard-rank-label {

@@ -66,6 +66,18 @@ create table if not exists public.featured_plants (
   position integer not null default 0
 );
 
+create table if not exists public.stock_requests (
+  id bigint generated always as identity primary key,
+  plant_id text not null references public.plants(id) on delete cascade,
+  user_id uuid not null references auth.users(id) on delete cascade,
+  customer_email text not null default '',
+  created_at timestamptz not null default now(),
+  unique (plant_id, user_id)
+);
+
+create index if not exists stock_requests_plant_idx
+on public.stock_requests (plant_id, created_at desc);
+
 create table if not exists public.plant_categories (
   name text primary key,
   sort_order integer not null default 0,
@@ -113,6 +125,7 @@ alter table public.plant_categories enable row level security;
 alter table public.site_settings enable row level security;
 alter table public.orders enable row level security;
 alter table public.profiles enable row level security;
+alter table public.stock_requests enable row level security;
 
 drop policy if exists "Customers can read their own profile" on public.profiles;
 create policy "Customers can read their own profile"
@@ -162,6 +175,25 @@ on public.featured_plants for all
 to authenticated
 using (lower((select auth.jwt() ->> 'email')) = 'e.koblitsky@gmail.com')
 with check (lower((select auth.jwt() ->> 'email')) = 'e.koblitsky@gmail.com');
+
+drop policy if exists "Customers can read their own stock requests" on public.stock_requests;
+create policy "Customers can read their own stock requests"
+on public.stock_requests for select
+to authenticated
+using (
+  (select auth.uid()) = user_id
+  or lower((select auth.jwt() ->> 'email')) = 'e.koblitsky@gmail.com'
+);
+
+drop policy if exists "Admin can delete stock requests" on public.stock_requests;
+create policy "Admin can delete stock requests"
+on public.stock_requests for delete
+to authenticated
+using (lower((select auth.jwt() ->> 'email')) = 'e.koblitsky@gmail.com');
+
+revoke insert, update on public.stock_requests from anon, authenticated;
+grant select on public.stock_requests to authenticated;
+grant delete on public.stock_requests to authenticated;
 
 drop policy if exists "Public can read plant categories" on public.plant_categories;
 create policy "Public can read plant categories"
@@ -301,6 +333,15 @@ begin
     raise exception 'The combined quantity for one plant cannot exceed 99.';
   end if;
 
+  if exists (
+    select 1
+    from jsonb_to_recordset(p_items) as requested(id text, quantity integer)
+    join public.plants p on p.id = requested.id
+    where p.status = 'low'
+  ) then
+    raise exception 'One or more plants in your cart are out of stock. Remove them from your cart before checking out.';
+  end if;
+
   with requested as (
     select id, sum(quantity)::integer as quantity
     from jsonb_to_recordset(p_items) as row_data(id text, quantity integer)
@@ -407,6 +448,44 @@ begin
   return v_order;
 end;
 $$;
+
+create or replace function public.request_plant_stock(p_plant_id text)
+returns public.stock_requests
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  v_user_id uuid := (select auth.uid());
+  v_email text := lower(coalesce((select auth.jwt() ->> 'email'), ''));
+  v_request public.stock_requests;
+begin
+  if v_user_id is null or v_email = '' then
+    raise exception 'Sign in before requesting a restock.';
+  end if;
+
+  if exists (
+    select 1 from public.profiles profile
+    where profile.user_id = v_user_id and profile.blocked
+  ) then
+    raise exception 'This Plantovia account has been blocked. Contact plantovia.shop@gmail.com for help.';
+  end if;
+
+  if not exists (select 1 from public.plants where id = p_plant_id and status = 'low') then
+    raise exception 'This plant is not currently out of stock.';
+  end if;
+
+  insert into public.stock_requests (plant_id, user_id, customer_email)
+  values (p_plant_id, v_user_id, v_email)
+  on conflict (plant_id, user_id) do update set customer_email = excluded.customer_email
+  returning * into v_request;
+
+  return v_request;
+end;
+$$;
+
+revoke all on function public.request_plant_stock(text) from public, anon;
+grant execute on function public.request_plant_stock(text) to authenticated;
 
 create or replace function public.confirm_order_received(
   p_order_number text,
