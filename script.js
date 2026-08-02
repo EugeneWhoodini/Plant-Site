@@ -976,6 +976,8 @@ function plantCardTemplate(plant) {
         <button class="plant-img-arrow plant-img-right" type="button" aria-label="Next ${plant.name} image">&rsaquo;</button>
       </div>
 
+      <div class="plant-card-scrim" aria-hidden="true"></div>
+
       <div class="plant-card-body">
         <span class="stock-badge ${plant.status === "low" ? "low-stock" : "good-stock"}">${getStatusLabel(plant.status)}</span>
         <h2>
@@ -1453,12 +1455,34 @@ function setupHeroVideo() {
   const video = document.getElementById("hero-video");
   if (!video) return;
 
-  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-
   const isMobile = window.matchMedia("(max-width: 768px)").matches;
   video.src = isMobile ? "assets/hero-video-mobile.mp4" : "assets/hero-video-desktop.mp4";
   video.load();
-  video.play().catch(() => {});
+
+  const attemptPlay = () => {
+    const playPromise = video.play();
+    if (playPromise && typeof playPromise.catch === "function") {
+      playPromise.catch(() => showHeroPlayButton(video));
+    }
+  };
+
+  if (video.readyState >= 2) attemptPlay();
+  else video.addEventListener("loadeddata", attemptPlay, { once: true });
+}
+
+function showHeroPlayButton(video) {
+  const section = video.closest(".hero-video-section");
+  if (!section || section.querySelector(".hero-play-btn")) return;
+
+  const button = document.createElement("button");
+  button.type = "button";
+  button.className = "hero-play-btn";
+  button.setAttribute("aria-label", "Play background video");
+  button.innerHTML = `<svg viewBox="0 0 24 24" width="26" height="26" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>`;
+  button.addEventListener("click", () => {
+    video.play().then(() => button.remove()).catch(() => {});
+  });
+  section.appendChild(button);
 }
 
 function setupIntroAnimation() {
