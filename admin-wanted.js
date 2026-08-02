@@ -8,17 +8,27 @@
 
       async function loadRequests() {
         loadError = "";
-        const { data, error } = await client
-          .from("stock_requests")
-          .select("plant_id,customer_email,created_at")
-          .order("created_at", { ascending: false })
-          .limit(5000);
-        if (error) {
+        const [{ data: requestRows, error: requestError }, { data: profileRows, error: profileError }] = await Promise.all([
+          client.from("stock_requests")
+            .select("plant_id,user_id,customer_email,created_at")
+            .order("created_at", { ascending: false })
+            .limit(5000),
+          client.from("profiles").select("user_id,full_name").limit(5000)
+        ]);
+
+        if (requestError) {
           requests = [];
-          loadError = error.message;
-        } else {
-          requests = data || [];
+          loadError = requestError.message;
+          return;
         }
+
+        const nameByUserId = new Map((profileRows || []).map(row => [row.user_id, row.full_name]));
+        if (profileError) console.error("Wanted plants: could not load customer names", profileError);
+
+        requests = (requestRows || []).map(row => ({
+          ...row,
+          fullName: nameByUserId.get(row.user_id) || ""
+        }));
       }
 
       function computeDemand() {
@@ -32,13 +42,23 @@
             name: plantMap.get(request.plant_id)?.name || request.plant_id,
             status: plantMap.get(request.plant_id)?.status || "unknown",
             count: 0,
-            lastRequested: request.created_at
+            lastRequested: request.created_at,
+            requesters: []
           };
           existing.count += 1;
           if (new Date(request.created_at) > new Date(existing.lastRequested)) {
             existing.lastRequested = request.created_at;
           }
+          existing.requesters.push({
+            name: request.fullName || "No name on file",
+            email: request.customer_email,
+            requestedAt: request.created_at
+          });
           demand.set(request.plant_id, existing);
+        });
+
+        demand.forEach(entry => {
+          entry.requesters.sort((a, b) => new Date(b.requestedAt) - new Date(a.requestedAt));
         });
 
         return Array.from(demand.values()).sort((a, b) => b.count - a.count);
@@ -67,7 +87,7 @@
                 ${demand.map(entry => {
                   const pct = maxCount > 0 ? Math.max(4, Math.round((entry.count / maxCount) * 100)) : 0;
                   return `
-                    <div class="dashboard-rank-row wanted-row" data-plant-id="${escapeHtml(entry.id)}">
+                    <div class="wanted-row" data-plant-id="${escapeHtml(entry.id)}">
                       <div class="dashboard-rank-main">
                         <div class="dashboard-rank-label">
                           <strong>${escapeHtml(entry.name)}</strong>
@@ -75,6 +95,15 @@
                         </div>
                         <div class="dashboard-rank-bar"><div class="dashboard-rank-fill" style="width:${pct}%"></div></div>
                         <p class="wanted-meta">${entry.count} ${entry.count === 1 ? "request" : "requests"} &middot; last requested ${new Date(entry.lastRequested).toLocaleDateString("en-CA", { dateStyle: "medium" })}</p>
+                        <ul class="wanted-requesters">
+                          ${entry.requesters.map(requester => `
+                            <li>
+                              <strong>${escapeHtml(requester.name)}</strong>
+                              <span>${escapeHtml(requester.email)}</span>
+                              <span class="wanted-requester-date">${new Date(requester.requestedAt).toLocaleDateString("en-CA", { dateStyle: "medium" })}</span>
+                            </li>
+                          `).join("")}
+                        </ul>
                       </div>
                       <button class="button secondary clear-wanted-requests" type="button">Clear Requests</button>
                     </div>`;

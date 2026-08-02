@@ -1103,8 +1103,31 @@ function setupSlider() {
     return `<a class="featured-plant-link" href="plant.html?id=${encodeURIComponent(plant.id)}" aria-label="View ${escapeHtml(plant.name)}"><img src="${image}" alt="${escapeHtml(plant.name)}" style="--bg-image: url('${image}')"></a>`;
   }).join("");
 
+  let dots = slider.querySelector(".slider-dots");
+  if (!dots && featuredPlants.length > 1) {
+    dots = document.createElement("div");
+    dots.className = "slider-dots";
+    dots.setAttribute("role", "tablist");
+    dots.setAttribute("aria-label", "Featured plants");
+    dots.innerHTML = featuredPlants.map((plant, index) =>
+      `<button type="button" class="slider-dot" role="tab" aria-label="Show ${escapeHtml(plant.name)}" data-index="${index}"></button>`
+    ).join("");
+    slider.appendChild(dots);
+  }
+
   let currentIndex = 0;
   let quantity = 1;
+  let autoAdvanceTimer = null;
+
+  function restartAutoAdvance() {
+    if (autoAdvanceTimer) clearInterval(autoAdvanceTimer);
+    if (featuredPlants.length <= 1) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    autoAdvanceTimer = setInterval(() => {
+      currentIndex = (currentIndex + 1) % featuredPlants.length;
+      updateSlider();
+    }, 5500);
+  }
 
   function updateFeaturedInfo() {
     const plant = featuredPlants[currentIndex];
@@ -1133,17 +1156,41 @@ function setupSlider() {
   function updateSlider() {
     track.style.transform = `translateX(-${currentIndex * 100}%)`;
     updateFeaturedInfo();
+    if (dots) {
+      dots.querySelectorAll(".slider-dot").forEach((dot, index) => {
+        dot.classList.toggle("active", index === currentIndex);
+        dot.setAttribute("aria-selected", index === currentIndex ? "true" : "false");
+      });
+    }
   }
 
   rightArrow.addEventListener("click", () => {
     currentIndex = (currentIndex + 1) % featuredPlants.length;
     updateSlider();
+    restartAutoAdvance();
   });
 
   leftArrow.addEventListener("click", () => {
     currentIndex = (currentIndex - 1 + featuredPlants.length) % featuredPlants.length;
     updateSlider();
+    restartAutoAdvance();
   });
+
+  if (dots) {
+    dots.addEventListener("click", event => {
+      const dotButton = event.target.closest(".slider-dot");
+      if (!dotButton) return;
+      currentIndex = Number(dotButton.dataset.index);
+      updateSlider();
+      restartAutoAdvance();
+    });
+  }
+
+  slider.addEventListener("mouseenter", () => {
+    if (autoAdvanceTimer) clearInterval(autoAdvanceTimer);
+  });
+
+  slider.addEventListener("mouseleave", restartAutoAdvance);
 
   incBtn.addEventListener("click", () => {
     quantity++;
@@ -1165,7 +1212,8 @@ function setupSlider() {
     qtyDisplay.textContent = quantity;
   });
 
-  updateFeaturedInfo();
+  updateSlider();
+  restartAutoAdvance();
 }
 
 function setupPlantCards() {
@@ -1401,8 +1449,20 @@ function introLeafMarkup() {
   </svg>`;
 }
 
+function setupHeroVideo() {
+  const video = document.getElementById("hero-video");
+  if (!video) return;
+
+  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+  const isMobile = window.matchMedia("(max-width: 768px)").matches;
+  video.src = isMobile ? "assets/hero-video-mobile.mp4" : "assets/hero-video-desktop.mp4";
+  video.load();
+  video.play().catch(() => {});
+}
+
 function setupIntroAnimation() {
-  const isHome = Boolean(document.querySelector(".hero"));
+  const isHome = Boolean(document.querySelector(".hero-video-section"));
   if (!isHome) return;
   if (!window.matchMedia("(max-width: 850px)").matches) return;
   if (sessionStorage.getItem("aquaIntroPlayed")) return;
@@ -2021,12 +2081,14 @@ function setupAccountPage() {
 
   if (!signupBtn || !signinBtn || !accountMessage) return;
 
+  const signupNameInput = document.getElementById("signup-name");
   const signupUsernameInput = document.getElementById("signup-username");
   const signupPasswordInput = document.getElementById("signup-password");
   const signinUsernameInput = document.getElementById("signin-username");
   const signinPasswordInput = document.getElementById("signin-password");
 
   function resetAuthFields() {
+    if (signupNameInput) signupNameInput.value = "";
     if (signupUsernameInput) signupUsernameInput.value = "";
     if (signupPasswordInput) signupPasswordInput.value = "";
     if (signinUsernameInput) signinUsernameInput.value = localStorage.getItem("lastSignInEmail") || "";
@@ -2105,8 +2167,14 @@ function setupAccountPage() {
   }
 
   signupBtn.addEventListener("click", async () => {
+    const fullName = document.getElementById("signup-name").value.trim();
     const username = document.getElementById("signup-username").value.trim();
     const password = document.getElementById("signup-password").value.trim();
+
+    if (!fullName) {
+      accountMessage.textContent = "Enter your full name.";
+      return;
+    }
 
     if (!username || !password) {
       accountMessage.textContent = "Enter a username and password.";
@@ -2131,7 +2199,10 @@ function setupAccountPage() {
     const { data, error } = await client.auth.signUp({
       email: username,
       password,
-      options: { emailRedirectTo: `${window.location.origin}/confirmed.html` }
+      options: {
+        emailRedirectTo: `${window.location.origin}/confirmed.html`,
+        data: { full_name: fullName }
+      }
     });
 
     if (error) {
@@ -2602,6 +2673,7 @@ function setupAdminPage() {
   let adminOrders = [];
   let adminOrderSearchText = "";
   let adminOrdersError = "";
+  const expandedPlantIds = new Set();
 
   async function loadAdminOrders() {
     adminOrdersError = "";
@@ -2829,60 +2901,65 @@ function setupAdminPage() {
       <div class="admin-grid">
         ${visiblePlants.map(plant => {
           const plantIndex = editablePlants.findIndex(item => item.id === plant.id);
+          const isExpanded = expandedPlantIds.has(plant.id);
 
           return `
-          <section class="admin-card" data-id="${plant.id}">
-            <div class="admin-card-header">
-              <div>
+          <section class="admin-card ${isExpanded ? "is-expanded" : ""}" data-id="${plant.id}">
+            <div class="admin-card-row">
+              <img class="admin-card-thumb" src="${getPlantImage(plant)}" alt="">
+              <div class="admin-card-main">
                 <p class="eyebrow">${plant.id}</p>
                 <h2>${escapeHtml(plant.name)}</h2>
+                <div class="admin-card-quickedit">
+                  <label class="admin-price-quick-label">
+                    <span>$</span>
+                    <input class="admin-price-quick" type="number" min="0" step="0.01" value="${plant.price}" aria-label="Price for ${escapeHtml(plant.name)}">
+                  </label>
+                  <button class="admin-status-pill ${plant.status === "low" ? "is-low" : "is-good"}" type="button" data-id="${plant.id}">
+                    ${plant.status === "low" ? "Low stock" : "Good stock"}
+                  </button>
+                  <label class="featured-toggle">
+                    <input type="checkbox" class="admin-featured" ${featuredIds.includes(plant.id) ? "checked" : ""}>
+                    Featured
+                  </label>
+                </div>
               </div>
               <div class="admin-card-tools">
                 <button class="order-plant" data-direction="up" type="button" ${plantIndex === 0 ? "disabled" : ""} aria-label="Move ${escapeHtml(plant.name)} up">↑</button>
                 <button class="order-plant" data-direction="down" type="button" ${plantIndex === editablePlants.length - 1 ? "disabled" : ""} aria-label="Move ${escapeHtml(plant.name)} down">↓</button>
+                <button class="admin-card-expand-toggle" type="button" aria-expanded="${isExpanded}">${isExpanded ? "Close" : "Edit details"}</button>
                 <button class="delete-plant" type="button" aria-label="Remove ${escapeHtml(plant.name)}">Remove</button>
-                <label class="featured-toggle">
-                  <input type="checkbox" class="admin-featured" ${featuredIds.includes(plant.id) ? "checked" : ""}>
-                  Featured
-                </label>
               </div>
             </div>
 
-            <label>Plant name</label>
-            <input class="admin-name" type="text" value="${escapeHtml(plant.name)}">
+            <div class="admin-card-details" ${isExpanded ? "" : "hidden"}>
+              <label>Plant name</label>
+              <input class="admin-name" type="text" value="${escapeHtml(plant.name)}">
 
-            <label>Price</label>
-            <input class="admin-price" type="number" min="0" step="0.01" value="${plant.price}">
+              <label>Description</label>
+              <textarea class="admin-description" rows="4">${escapeHtml(plant.description)}</textarea>
 
-            <label>Status</label>
-            <select class="admin-status">
-              <option value="good" ${plant.status !== "low" ? "selected" : ""}>Good stock</option>
-              <option value="low" ${plant.status === "low" ? "selected" : ""}>Low on stock</option>
-            </select>
+              <label>Care requirements</label>
+              <textarea class="admin-requirements" rows="3">${escapeHtml((plant.requirements || []).join("\n"))}</textarea>
 
-            <label>Description</label>
-            <textarea class="admin-description" rows="4">${escapeHtml(plant.description)}</textarea>
+              <label>Category tags</label>
+              <div class="admin-category-options">
+                ${renderAdminCategoryCheckboxes(plant)}
+              </div>
 
-            <label>Care requirements</label>
-            <textarea class="admin-requirements" rows="3">${escapeHtml((plant.requirements || []).join("\n"))}</textarea>
+              <label>Images</label>
+              <div class="admin-images">
+                ${(plant.images || []).map((image, index) => `
+                  <div class="admin-image">
+                    <img src="${image}" alt="${plant.name} image ${index + 1}" style="--admin-bg-image: url('${image}')">
+                    <button class="remove-image" data-index="${index}" type="button">Remove</button>
+                  </div>
+                `).join("")}
+              </div>
 
-            <label>Category tags</label>
-            <div class="admin-category-options">
-              ${renderAdminCategoryCheckboxes(plant)}
+              <input class="admin-image-upload" type="file" accept="image/*" multiple>
+              <button class="save-plant button primary" type="button">Save Plant</button>
             </div>
-
-            <label>Images</label>
-            <div class="admin-images">
-              ${(plant.images || []).map((image, index) => `
-                <div class="admin-image">
-                  <img src="${image}" alt="${plant.name} image ${index + 1}" style="--admin-bg-image: url('${image}')">
-                  <button class="remove-image" data-index="${index}" type="button">Remove</button>
-                </div>
-              `).join("")}
-            </div>
-
-            <input class="admin-image-upload" type="file" accept="image/*" multiple>
-            <button class="save-plant button primary" type="button">Save Plant</button>
           </section>
         `}).join("")}
       </div>
@@ -2896,8 +2973,6 @@ function setupAdminPage() {
     return {
       ...plant,
       name: card.querySelector(".admin-name").value.trim() || plant.name,
-      price: Number(card.querySelector(".admin-price").value || 0),
-      status: card.querySelector(".admin-status").value,
       description: card.querySelector(".admin-description").value.trim(),
       requirements: card.querySelector(".admin-requirements").value
         .split("\n")
@@ -2989,11 +3064,37 @@ function setupAdminPage() {
     if (addPlantButton) {
       const newPlant = getNewPlantTemplate();
       editablePlants = [newPlant, ...editablePlants];
+      expandedPlantIds.add(newPlant.id);
       savePlants(editablePlants);
       adminSearchText = "";
       Promise.resolve(client ? savePlantsToBackend(editablePlants) : null)
         .catch(error => console.error("Add plant failed:", error));
       renderAdmin();
+      return;
+    }
+
+    const expandToggle = event.target.closest(".admin-card-expand-toggle");
+    if (expandToggle) {
+      const plantId = expandToggle.closest(".admin-card").dataset.id;
+      if (expandedPlantIds.has(plantId)) expandedPlantIds.delete(plantId);
+      else expandedPlantIds.add(plantId);
+      renderAdmin();
+      return;
+    }
+
+    const statusPill = event.target.closest(".admin-status-pill");
+    if (statusPill) {
+      const plantId = statusPill.dataset.id;
+      const plant = editablePlants.find(item => item.id === plantId);
+      plant.status = plant.status === "low" ? "good" : "low";
+      savePlants(editablePlants);
+      statusPill.disabled = true;
+      Promise.resolve(client ? savePlantToBackend(plant) : null)
+        .then(() => renderAdmin())
+        .catch(error => {
+          console.error("Status save failed:", error);
+          renderAdmin();
+        });
       return;
     }
 
@@ -3133,6 +3234,31 @@ function setupAdminPage() {
     }
   });
 
+  adminPanel.addEventListener("focusout", event => {
+    const priceInput = event.target.closest(".admin-price-quick");
+    if (!priceInput) return;
+
+    const plantId = priceInput.closest(".admin-card").dataset.id;
+    const plant = editablePlants.find(item => item.id === plantId);
+    const nextPrice = Number(priceInput.value || 0);
+    if (nextPrice === plant.price) return;
+
+    plant.price = nextPrice;
+    savePlants(editablePlants);
+    priceInput.classList.add("is-saved");
+    setTimeout(() => priceInput.classList.remove("is-saved"), 900);
+
+    Promise.resolve(client ? savePlantToBackend(plant) : null)
+      .catch(error => console.error("Price save failed:", error));
+  });
+
+  adminPanel.addEventListener("keydown", event => {
+    if (event.key === "Enter" && event.target.closest(".admin-price-quick")) {
+      event.preventDefault();
+      event.target.blur();
+    }
+  });
+
   adminPanel.addEventListener("input", event => {
     const orderSearchInput = event.target.closest("#admin-order-search");
     if (orderSearchInput) {
@@ -3243,6 +3369,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     document.querySelectorAll("[data-reveal]:not(.is-visible)").forEach(el => el.classList.add("is-visible"));
   }, 600);
 
+  safeRun("setupHeroVideo", setupHeroVideo);
   safeRun("setupIntroAnimation", setupIntroAnimation);
   // Reveal is purely visual and only ever targets static wrapper elements already
   // in the HTML, so it must not wait on network-dependent backend calls below —

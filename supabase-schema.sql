@@ -7,6 +7,7 @@ create extension if not exists pgcrypto with schema extensions;
 create table if not exists public.profiles (
   user_id uuid primary key references auth.users(id) on delete cascade,
   email text not null default '',
+  full_name text not null default '',
   blocked boolean not null default false,
   blocked_at timestamptz,
   created_at timestamptz not null default now(),
@@ -16,9 +17,10 @@ create table if not exists public.profiles (
 alter table public.profiles add column if not exists blocked boolean not null default false;
 alter table public.profiles add column if not exists blocked_at timestamptz;
 alter table public.profiles add column if not exists updated_at timestamptz not null default now();
+alter table public.profiles add column if not exists full_name text not null default '';
 
-insert into public.profiles (user_id, email, created_at, updated_at)
-select id, lower(coalesce(email, '')), created_at, now()
+insert into public.profiles (user_id, email, full_name, created_at, updated_at)
+select id, lower(coalesce(email, '')), coalesce(raw_user_meta_data ->> 'full_name', ''), created_at, now()
 from auth.users
 on conflict (user_id) do update
 set email = excluded.email,
@@ -31,8 +33,8 @@ security definer
 set search_path = ''
 as $$
 begin
-  insert into public.profiles (user_id, email, created_at, updated_at)
-  values (new.id, lower(coalesce(new.email, '')), coalesce(new.created_at, now()), now())
+  insert into public.profiles (user_id, email, full_name, created_at, updated_at)
+  values (new.id, lower(coalesce(new.email, '')), coalesce(new.raw_user_meta_data ->> 'full_name', ''), coalesce(new.created_at, now()), now())
   on conflict (user_id) do update
   set email = excluded.email,
       updated_at = now();

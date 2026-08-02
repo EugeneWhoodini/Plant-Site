@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>PLANTOVIA</title>
-  <link rel="stylesheet" href="style.css?v=20260801-stockreq" />
+  <link rel="stylesheet" href="style.css?v=20260802-remodel2" />
   <link rel="icon" type="image/png" href="assets/favicon.png" />
 </head>
 <body data-page="all">
@@ -22,36 +22,30 @@
     </nav>
   </header>
 
-  <section class="hero">
-    <img src="assets/hero-aquascape.png" alt="Lush planted aquarium aquascape">
+  <section class="hero-video-section">
+    <video class="hero-video" id="hero-video" autoplay muted loop playsinline preload="auto" poster="assets/hero-video-poster.jpg"></video>
+    <div class="hero-video-scrim" aria-hidden="true"></div>
     <div class="hero-bubbles" aria-hidden="true">
       <span></span><span></span><span></span><span></span>
       <span></span><span></span><span></span><span></span>
+      <span></span><span></span>
     </div>
-    <div class="hero-content">
-      <p class="eyebrow">Freshwater aquarium plants</p>
-      <h1>Healthy plants for cleaner, calmer aquariums.</h1>
-      <p>Shop beginner-friendly epiphytes, carpets, stems, mosses, and centerpiece plants selected for planted tanks.</p>
+
+    <div class="hero-video-content">
+      <p class="hero-eyebrow">Est. for planted tanks</p>
+      <h1 class="hero-title">PLANTOVIA</h1>
+      <p class="hero-tagline">Healthy plants for cleaner, calmer aquariums.</p>
+      <p class="hero-sub">Shop beginner-friendly epiphytes, carpets, stems, mosses, and centerpiece plants selected for planted tanks.</p>
       <div class="hero-actions">
         <a class="button primary" href="#plant-grid">Shop plants</a>
         <a class="button secondary" href="search.html">Find a plant</a>
         <a class="button secondary" href="contact.html">Contact us</a>
       </div>
     </div>
-  </section>
 
-  <section class="brand-title-card" data-reveal>
-    <div class="brand-title-bubbles" aria-hidden="true">
-      <span></span><span></span><span></span><span></span>
-      <span></span><span></span><span></span><span></span>
-      <span></span><span></span>
-    </div>
-    <div class="brand-title-leaves" aria-hidden="true">
-      <span class="brand-leaf brand-leaf-left"><svg viewBox="0 0 64 88" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M32 4C16 14 6 32 6 50c0 18 12 32 26 34 14-2 26-16 26-34C58 32 48 14 32 4z" fill="currentColor"/><path d="M32 4v80" stroke="rgba(6,25,18,0.28)" stroke-width="2" stroke-linecap="round"/></svg></span>
-      <span class="brand-leaf brand-leaf-right"><svg viewBox="0 0 64 88" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M32 4C16 14 6 32 6 50c0 18 12 32 26 34 14-2 26-16 26-34C58 32 48 14 32 4z" fill="currentColor"/><path d="M32 4v80" stroke="rgba(6,25,18,0.28)" stroke-width="2" stroke-linecap="round"/></svg></span>
-    </div>
-    <p class="brand-title-eyebrow">Est. for planted tanks</p>
-    <h2 class="brand-title-text">PLANTOVIA</h2>
+    <button class="hero-scroll-cue" type="button" aria-label="Scroll to shop">
+      <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+    </button>
   </section>
 
   <section class="shipping-banner" data-reveal>
@@ -105,6 +99,6 @@
   <script src="plants.js"></script>
   <script src="config.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="script.js?v=20260801-stockreq"></script>
+  <script src="script.js?v=20260802-remodel2"></script>
 </body>
 </html>
