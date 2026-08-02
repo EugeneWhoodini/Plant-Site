@@ -976,8 +976,6 @@ function plantCardTemplate(plant) {
         <button class="plant-img-arrow plant-img-right" type="button" aria-label="Next ${plant.name} image">&rsaquo;</button>
       </div>
 
-      <div class="plant-card-scrim" aria-hidden="true"></div>
-
       <div class="plant-card-body">
         <span class="stock-badge ${plant.status === "low" ? "low-stock" : "good-stock"}">${getStatusLabel(plant.status)}</span>
         <h2>
@@ -1468,6 +1466,20 @@ function setupHeroVideo() {
 
   if (video.readyState >= 2) attemptPlay();
   else video.addEventListener("loadeddata", attemptPlay, { once: true });
+
+  const scrollCue = document.querySelector(".hero-scroll-cue");
+  if (scrollCue) {
+    scrollCue.addEventListener("click", () => {
+      const heroSection = document.querySelector(".hero-video-section");
+      const nextSection = heroSection?.nextElementSibling;
+      if (nextSection) {
+        nextSection.scrollIntoView({
+          behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
+          block: "start"
+        });
+      }
+    });
+  }
 }
 
 function showHeroPlayButton(video) {
